@@ -1,0 +1,57 @@
+version: "3.9"
+
+services:
+  # ─────────────────────────────────────────
+  # PostgreSQL 16
+  # ─────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: gyul_biseo_postgres
+    environment:
+      POSTGRES_DB: gyul_biseo
+      POSTGRES_USER: gyul_user
+      POSTGRES_PASSWORD: gyul_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gyul_user -d gyul_biseo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────
+  # ChromaDB (Vector Store)
+  # ─────────────────────────────────────────
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: gyul_biseo_chroma
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - ANONYMIZED_TELEMETRY=False
+
+  # ─────────────────────────────────────────
+  # Backend (FastAPI) - 개발 시 로컬 실행 권장
+  # ─────────────────────────────────────────
+  # backend:
+  #   build: ./backend
+  #   container_name: gyul_biseo_backend
+  #   env_file: .env
+  #   ports:
+  #     - "8000:8000"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     chromadb:
+  #       condition: service_started
+  #   volumes:
+  #     - ./backend:/app
+  #   command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+volumes:
+  postgres_data:
+  chroma_data:
