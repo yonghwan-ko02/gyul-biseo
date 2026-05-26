@@ -1,0 +1,183 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+// ─────────────────────────────────────────
+// 1. 농장주 및 거래처
+// ─────────────────────────────────────────
+
+model Farm {
+  id             String   @id @default(uuid())
+  farmName       String?  @map("farm_name")
+  ownerName      String   @map("owner_name")
+  phone          String?
+  bankName       String?  @map("bank_name")
+  accountNumber  String?  @map("account_number")
+  accountHolder  String?  @map("account_holder")
+  
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  customers      Customer[]
+  shipments      Shipment[]
+  farmLogs       FarmLog[]
+  workers        Worker[]
+  workRecords    WorkRecord[]
+
+  @@map("farms")
+}
+
+model Customer {
+  id           String   @id @default(uuid())
+  farmId       String   @map("farm_id")
+  name         String   // 공식 거래처명
+  nickname     String?  // 별칭 (예: 삼춘네, 영철이)
+  type         String   // direct(직거래), wholesale(도매), coop(작목반), acquaintance(지인)
+  phone        String?
+  address      String?
+  memo         String?
+  
+  isDeleted    Boolean  @default(false) @map("is_deleted")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  farm         Farm       @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  shipments    Shipment[]
+
+  @@index([farmId])
+  @@index([nickname])
+  @@map("customers")
+}
+
+// ─────────────────────────────────────────
+// 2. 출하 및 정산 기록
+// ─────────────────────────────────────────
+
+model Shipment {
+  id                String   @id @default(uuid())
+  farmId            String   @map("farm_id")
+  customerId        String   @map("customer_id")
+  
+  shipmentDate      DateTime @default(now()) @map("shipment_date") // 실제 출하일
+  
+  variety           String   // 품종 (노지, 타이벡, 한라봉 등)
+  grade             String?  // 등급 (상, 중, 하, 로얄 등)
+  packageWeight     Float?   @map("package_weight") // 포장 단위 (3.0, 5.0, 10.0 kg 등)
+  quantity          Int      // 수량 (박스/개)
+  unitPrice         Int?     @map("unit_price") // 단가 (원)
+  totalAmount       Int?     @map("total_amount") // 총액 (자동 또는 수동)
+  outstandingAmount Int?     @map("outstanding_amount") // 미수금 잔액
+  
+  paymentStatus     String   @default("unpaid") @map("payment_status") // paid, partial, unpaid
+  shippingIncluded  Boolean  @default(false) @map("shipping_included") // 택배비 포함 여부
+  
+  rawInput          String?  @map("raw_input") // AI 음성 원문 기록
+  memo              String?  
+  
+  isDeleted         Boolean  @default(false) @map("is_deleted")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  farm              Farm       @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  customer          Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  payments          Payment[]
+
+  @@index([farmId])
+  @@index([customerId])
+  @@index([paymentStatus])
+  @@index([shipmentDate])
+  @@map("shipments")
+}
+
+model Payment {
+  id             String   @id @default(uuid())
+  shipmentId     String   @map("shipment_id")
+  
+  amount         Int      // 입금액
+  paymentDate    DateTime @default(now()) @map("payment_date")
+  method         String?  // transfer, cash, etc
+  memo           String?
+  
+  isDeleted      Boolean  @default(false) @map("is_deleted")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  shipment       Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  @@index([shipmentId])
+  @@map("payments")
+}
+
+// ─────────────────────────────────────────
+// 3. 영농일지 및 인력 관리
+// ─────────────────────────────────────────
+
+model FarmLog {
+  id           String   @id @default(uuid())
+  farmId       String   @map("farm_id")
+  
+  logDate      DateTime @default(now()) @map("log_date")
+  category     String   // spray(농약/비료), prune(전정), harvest(수확), other
+  targetField  String?  @map("target_field") // 작업한 밭/동 위치
+  description  String   // 상세 작업 내용
+  
+  rawInput     String?  @map("raw_input") // AI 음성 원문
+  isDeleted    Boolean  @default(false) @map("is_deleted")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  farm         Farm     @relation(fields: [farmId], references: [id], onDelete: Cascade)
+
+  @@index([farmId])
+  @@index([logDate])
+  @@map("farm_logs")
+}
+
+model Worker {
+  id           String   @id @default(uuid())
+  farmId       String   @map("farm_id")
+  
+  name         String
+  phone        String?
+  dailyWage    Int?     @map("daily_wage") // 기본 일당
+  memo         String?
+  
+  isDeleted    Boolean  @default(false) @map("is_deleted")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  farm         Farm         @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  workRecords  WorkRecord[]
+
+  @@index([farmId])
+  @@map("workers")
+}
+
+model WorkRecord {
+  id           String   @id @default(uuid())
+  workerId     String   @map("worker_id")
+  farmId       String   @map("farm_id")
+  
+  workDate     DateTime @default(now()) @map("work_date")
+  hours        Float?   // 근무 시간 (0.5=반공수, 1.0=1공수)
+  dailyWage    Int      @map("daily_wage") // 이 날의 실제 지급할 일당
+  
+  paymentStatus String  @default("unpaid") @map("payment_status") // paid, unpaid
+  memo         String?
+  
+  isDeleted    Boolean  @default(false) @map("is_deleted")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  worker       Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  farm         Farm     @relation(fields: [farmId], references: [id], onDelete: Cascade)
+
+  @@index([workerId])
+  @@index([farmId])
+  @@map("work_records")
+}

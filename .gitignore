@@ -1,62 +1,43 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-.venv/
-venv/
-env/
-*.egg-info/
-dist/
-build/
-.eggs/
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# 환경 변수 (절대 커밋 금지!)
-.env
-.env.local
-.env.*.local
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
 .DS_Store
-Thumbs.db
+*.pem
 
-# 테스트 & 커버리지
-.pytest_cache/
-.coverage
-htmlcov/
-.mypy_cache/
-.ruff_cache/
-
-# 로그
-*.log
-logs/
-
-# DB
-*.sqlite3
-*.db
-
-# Docker
-.docker/
-
-# Node.js (프론트엔드)
-node_modules/
-.next/
-out/
+# debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
 
-# 업로드된 임시 파일
-backend/uploads/
-backend/tmp/
+# env files (can opt-in for committing if needed)
+.env*
 
-# Alembic 자동 생성 (버전 파일은 커밋)
-# migrations/versions/*.py  ← 이건 커밋해야 함
+# vercel
+.vercel
 
-# 임시 스크립트
-scratch/
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+/src/generated/prisma
