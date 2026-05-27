@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { parseUserUtterance } from "@/lib/ai/llm";
 import { createShipmentRecord, createCustomerOrderRecord } from "@/lib/services/shipment-service";
+import { createPaymentRecord } from "@/lib/services/payment-service";
+import { createFarmLogRecord } from "@/lib/services/farmlog-service";
+import { queryUnpaidRecords } from "@/lib/services/unpaid-service";
+import type { ParsedAction } from "@/lib/ai/actions";
 
 export async function POST(request: Request) {
   try {
@@ -11,38 +15,91 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 });
     }
 
-    const action = await parseUserUtterance(message);
+    const action: ParsedAction = await parseUserUtterance(message);
 
-    // DB 연동 파이프라인 (Step 6)
-    if (action.action === "create_shipment" && action.data) {
-      // @ts-ignore
+    // ─── 출하 기록 ───
+    if (action.action === "create_shipment") {
       const savedShipment = await createShipmentRecord({
-        ...action.data,
+        customerName: action.data.customerName,
+        variety: action.data.variety,
+        quantity: action.data.quantity,
+        unit: action.data.unit,
+        pricePerUnit: action.data.pricePerUnit,
         rawInput: message,
       });
       
       return NextResponse.json({ 
         action, 
         savedId: savedShipment.id, 
-        savedCustomerName: savedShipment.customer.name 
+        savedCustomerName: savedShipment.customer.name,
       });
-    } else if (action.action === "create_customer_order" && action.data) {
-      // @ts-ignore
+    }
+
+    // ─── B2C 주문 접수 ───
+    if (action.action === "create_customer_order") {
       const savedOrder = await createCustomerOrderRecord({
-        ...action.data,
+        customerName: action.data.customerName,
+        phone: action.data.phone,
+        address: action.data.address,
+        variety: action.data.variety,
+        quantity: action.data.quantity,
+        unit: action.data.unit,
         rawInput: message,
       });
 
       return NextResponse.json({ 
         action, 
         savedId: savedOrder.id, 
-        savedCustomerName: savedOrder.customer.name 
+        savedCustomerName: savedOrder.customer.name,
       });
     }
-    
+
+    // ─── 입금(수금) 기록 ───
+    if (action.action === "create_payment") {
+      const result = await createPaymentRecord({
+        customerName: action.data.customerName,
+        amount: action.data.amount,
+        rawInput: message,
+      });
+
+      return NextResponse.json({
+        action,
+        paymentResult: result,
+      });
+    }
+
+    // ─── 영농일지 기록 ───
+    if (action.action === "create_farm_log") {
+      const farmLog = await createFarmLogRecord({
+        workType: action.data.workType,
+        workerCount: action.data.workerCount,
+        details: action.data.details,
+        rawInput: message,
+      });
+
+      return NextResponse.json({
+        action,
+        savedLogId: farmLog.id,
+      });
+    }
+
+    // ─── 미수금 조회 ───
+    if (action.action === "query_unpaid") {
+      const unpaidResult = await queryUnpaidRecords({
+        customerName: action.data.customerName,
+      });
+
+      return NextResponse.json({
+        action,
+        unpaidResult,
+      });
+    }
+
+    // ─── clarify / unknown 등 ───
     return NextResponse.json({ action });
   } catch (error) {
     console.error("API Chat Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : "Internal Server Error";
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

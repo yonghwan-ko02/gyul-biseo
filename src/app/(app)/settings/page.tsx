@@ -1,8 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { SettingsForm } from "@/components/SettingsForm";
 import styles from "./settings.module.css";
 
-const prisma = new PrismaClient({});
 
 export const dynamic = "force-dynamic";
 

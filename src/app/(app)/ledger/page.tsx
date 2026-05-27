@@ -1,9 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/Card";
 import { format } from "date-fns";
 import styles from "./ledger.module.css";
 
-const prisma = new PrismaClient({});
 
 export const dynamic = "force-dynamic";
 

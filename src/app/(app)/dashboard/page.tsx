@@ -1,10 +1,9 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { DashboardChart } from "@/components/DashboardChart";
 import { format, subDays, startOfMonth } from "date-fns";
 import styles from "./dashboard.module.css";
 
-const prisma = new PrismaClient({});
 
 export const dynamic = "force-dynamic";
 
@@ -36,27 +35,34 @@ export default async function DashboardPage() {
   });
   const monthRevenue = monthShipments.reduce((acc, curr) => acc + (curr.totalAmount || (curr.quantity * (curr.unitPrice || 0))), 0);
 
-  // 4. 최근 7일 주간 출하 추이
-  const chartData = [];
-  for (let i = 6; i >= 0; i--) {
-    const targetDate = subDays(new Date(), i);
-    targetDate.setHours(0, 0, 0, 0);
-    const nextDate = new Date(targetDate);
-    nextDate.setDate(targetDate.getDate() + 1);
+  // 4. 최근 7일 주간 출하 추이 (단일 쿼리로 최적화)
+  const sevenDaysAgo = subDays(new Date(), 6);
+  sevenDaysAgo.setHours(0, 0, 0, 0);
 
-    const dayShipments = await prisma.shipment.findMany({
-      where: {
-        createdAt: { gte: targetDate, lt: nextDate },
-        status: "shipped",
-        isDeleted: false
-      }
-    });
-    const dailyTotal = dayShipments.reduce((acc, curr) => acc + curr.quantity, 0);
-    chartData.push({
-      name: format(targetDate, "M/d"),
-      출하량: dailyTotal
-    });
+  const weekShipments = await prisma.shipment.findMany({
+    where: {
+      createdAt: { gte: sevenDaysAgo },
+      status: "shipped",
+      isDeleted: false,
+    },
+  });
+
+  // 날짜별로 그룹핑
+  const dailyMap = new Map<string, number>();
+  for (let i = 6; i >= 0; i--) {
+    const d = subDays(new Date(), i);
+    dailyMap.set(format(d, "M/d"), 0);
   }
+  for (const s of weekShipments) {
+    const key = format(new Date(s.createdAt), "M/d");
+    if (dailyMap.has(key)) {
+      dailyMap.set(key, (dailyMap.get(key) || 0) + s.quantity);
+    }
+  }
+  const chartData = Array.from(dailyMap.entries()).map(([name, qty]) => ({
+    name,
+    출하량: qty,
+  }));
 
   // 5. 최근 거래 (최대 3건)
   const recentTransactions = await prisma.shipment.findMany({

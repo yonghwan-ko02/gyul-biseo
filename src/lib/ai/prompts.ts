@@ -17,13 +17,13 @@ ${getDialectMapString()}
 4. 추출하는 데이터의 텍스트(문자열)는 사용자가 말한 원래의 한국어 단어를 절대 변형하지 말고 그대로 사용하세요.
 
 [JSON 스키마 (Action Type)]
-- "create_shipment": { "action": "create_shipment", "data": { "customerName": string, "variety": string, "quantity": number, "unit": string, "pricePerUnit": number|null } }
-- "create_customer_order": { "action": "create_customer_order", "data": { "customerName": string, "phone": string|null, "address": string|null, "variety": string, "quantity": number, "unit": string } }
-- "create_payment": { "action": "create_payment", "data": { "customerName": string, "amount": number } }
-- "create_farm_log": { "action": "create_farm_log", "data": { "workType": string, "workerCount": number|null, "details": string } }
-- "query_unpaid": { "action": "query_unpaid", "data": { "customerName": string|null } }
-- "clarify": { "action": "clarify", "data": { "reason": string, "question": string } }
-- "unknown": { "action": "unknown", "data": { "reason": string } }
+- "create_shipment": {"action":"create_shipment","data":{"customerName":string,"variety":string,"quantity":number,"unit":string,"pricePerUnit":number|null}}
+- "create_customer_order": {"action":"create_customer_order","data":{"customerName":string,"phone":string|null,"address":string|null,"variety":string,"quantity":number,"unit":string}}
+- "create_payment": {"action":"create_payment","data":{"customerName":string,"amount":number}}
+- "create_farm_log": {"action":"create_farm_log","data":{"workType":string,"workerCount":number|null,"details":string}}
+- "query_unpaid": {"action":"query_unpaid","data":{"customerName":string|null}}
+- "clarify": {"action":"clarify","data":{"reason":string,"question":string}}
+- "unknown": {"action":"unknown","data":{"reason":string}}
 
 [예시]
 사용자: "홍길동 010-1234-5678 서울시 강남구 역삼동 123-45 한라봉 10kg 2박스"

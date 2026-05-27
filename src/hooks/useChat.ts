@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import type { ParsedAction } from "@/lib/ai/actions";
-
+import { getShipmentReply, getOrderReply, getPaymentReply, getFarmLogReply, getFallbackReply } from "@/lib/ai/responses";
 export interface Message {
   id: string;
   role: "user" | "assistant";
@@ -35,21 +35,27 @@ export function useChat() {
       if (action.action === "create_shipment") {
         const { variety, quantity, unit } = action.data;
         const savedName = data.savedCustomerName || action.data.customerName;
-        replyContent = `[출하 완료] ${savedName ? savedName + "에 " : ""}${variety} ${quantity}${unit} 출하 기록을 장부에 추가했습니다.`;
+        replyContent = getShipmentReply(savedName, variety, quantity, unit);
       } else if (action.action === "create_customer_order") {
-        const { variety, quantity, unit, phone, address } = action.data;
+        const { variety, quantity, unit, phone } = action.data;
         const savedName = data.savedCustomerName || action.data.customerName;
-        replyContent = `[주문 접수] ${savedName}(${phone || '연락처 없음'})님의 ${variety} ${quantity}${unit} 주문을 접수했습니다. (발송 대기 상태)`;
+        replyContent = getOrderReply(savedName, phone, variety, quantity, unit);
       } else if (action.action === "create_payment") {
-        replyContent = `[입금] ${action.data.customerName}에서 ${action.data.amount.toLocaleString()}원 입금된 내역을 확인했습니다.`;
+        const pr = data.paymentResult;
+        if (pr) {
+          replyContent = getPaymentReply(pr.customerName, pr.totalAmount, pr.paymentCount, pr.remainingAmount);
+        } else {
+          replyContent = getPaymentReply(action.data.customerName, action.data.amount);
+        }
       } else if (action.action === "create_farm_log") {
-        replyContent = `[영농일지] 오늘 ${action.data.workType} 작업${action.data.workerCount ? ` (${action.data.workerCount}명)` : ""}을 일지에 기록했습니다.`;
+        replyContent = getFarmLogReply(action.data.workType, action.data.workerCount);
       } else if (action.action === "clarify") {
         replyContent = action.data.question;
       } else if (action.action === "query_unpaid") {
-        replyContent = `[조회] ${action.data.customerName || "전체"} 미수금 내역을 불러오겠습니다. (개발 중)`;
+        const ur = data.unpaidResult;
+        replyContent = ur?.message || `[조회] ${action.data.customerName || "전체"} 미수금 내역을 확인합니다.`;
       } else {
-        replyContent = `말씀하신 내용을 기록하기 어렵습니다. 다시 한번 자세히 말씀해 주시겠어요?`;
+        replyContent = getFallbackReply();
       }
 
       setMessages((prev) => [
