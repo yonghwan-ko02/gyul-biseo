@@ -1,0 +1,73 @@
+.container {
+  padding: var(--space-lg) var(--space-md);
+  max-width: 600px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+.header {
+  margin-bottom: var(--space-xl);
+}
+
+.header h2 {
+  font-size: var(--font-size-2xl);
+  margin-bottom: var(--space-xs);
+  color: var(--color-text);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2xl) 0;
+  text-align: center;
+  gap: var(--space-sm);
+}
+
+.emptyIcon {
+  font-size: 4rem;
+  margin-bottom: var(--space-md);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-md);
+}
+
+.customerName {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+}
+
+.countBadge {
+  background-color: var(--color-border);
+  color: var(--color-text-secondary);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.amountBox {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff1f2;
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+}
+
+.totalAmount {
+  font-size: var(--font-size-xl);
+  font-weight: bold;
+  color: #e11d48;
+}

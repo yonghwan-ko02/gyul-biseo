@@ -1,0 +1,107 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.button:active {
+  transform: scale(0.97);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ─── Variants ─── */
+.primary {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+.primary:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+
+.secondary {
+  background: var(--color-secondary);
+  color: var(--color-text-inverse);
+}
+.secondary:hover:not(:disabled) {
+  background: var(--color-secondary-light);
+}
+
+.outline {
+  background: transparent;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+}
+.outline:hover:not(:disabled) {
+  background: var(--color-primary-bg);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+.ghost:hover:not(:disabled) {
+  background: var(--color-border-light);
+}
+
+.danger {
+  background: var(--color-danger);
+  color: var(--color-text-inverse);
+}
+.danger:hover:not(:disabled) {
+  background: #DC2626;
+}
+
+/* ─── Sizes — 5070 접근성: 최소 48px 높이 ─── */
+.sm {
+  height: var(--touch-min);
+  padding: 0 var(--space-md);
+  font-size: var(--font-size-sm);
+}
+
+.md {
+  height: var(--touch-target);
+  padding: 0 var(--space-lg);
+  font-size: var(--font-size-base);
+}
+
+.lg {
+  height: 64px;
+  padding: 0 var(--space-xl);
+  font-size: var(--font-size-lg);
+}
+
+/* ─── Full Width ─── */
+.fullWidth {
+  width: 100%;
+}
+
+/* ─── Loading Spinner ─── */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

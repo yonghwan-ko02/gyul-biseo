@@ -1,0 +1,93 @@
+.container {
+  padding: var(--space-lg) var(--space-md);
+  max-width: 600px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+.header {
+  margin-bottom: var(--space-xl);
+}
+
+.header h2 {
+  font-size: var(--font-size-2xl);
+  margin-bottom: var(--space-xs);
+  color: var(--color-text);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2xl) 0;
+  text-align: center;
+  gap: var(--space-sm);
+}
+
+.emptyIcon {
+  font-size: 4rem;
+  margin-bottom: var(--space-md);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.customerName {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.badgePending {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  padding: 4px 8px;
+  background-color: #fff3cd;
+  color: #856404;
+  border-radius: 12px;
+}
+
+.badgeShipped {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  padding: 4px 8px;
+  background-color: #e2e8f0;
+  color: #475569;
+  border-radius: 12px;
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-lg);
+}
+
+.infoValue {
+  font-weight: 500;
+  color: var(--color-text);
+  text-align: right;
+  word-break: keep-all;
+}

@@ -1,0 +1,62 @@
+.nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--max-width);
+  height: var(--bottom-nav-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-border-light);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  z-index: 100;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: var(--touch-target);
+  min-height: var(--touch-target);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--color-text-tertiary);
+  transition: all var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.item:hover {
+  color: var(--color-text-secondary);
+  background: var(--color-border-light);
+}
+
+.item:active {
+  transform: scale(0.95);
+}
+
+/* 활성 탭 */
+.active {
+  color: var(--color-primary);
+}
+
+.active .label {
+  font-weight: var(--font-weight-semibold);
+}
+
+.icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.label {
+  font-size: var(--font-size-xs);
+  line-height: 1;
+}

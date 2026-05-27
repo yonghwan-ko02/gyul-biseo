@@ -7,6 +7,8 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ─────────────────────────────────────────
@@ -77,6 +79,7 @@ model Shipment {
   
   paymentStatus     String   @default("unpaid") @map("payment_status") // paid, partial, unpaid
   shippingIncluded  Boolean  @default(false) @map("shipping_included") // 택배비 포함 여부
+  status            String   @default("shipped") // pending(주문접수/발송대기), shipped(출하완료)
   
   rawInput          String?  @map("raw_input") // AI 음성 원문 기록
   memo              String?  
