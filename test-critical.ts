@@ -110,6 +110,18 @@ const testCases: TestCase[] = [
     input: "오늘 일꾼들 와가지고 전정작업 오지게 했네. 아지망 세명이랑 저기 삼촌 두명 해서 하루종일 고생했어.",
     expectedAction: "create_farm_log",
     description: "속어(오지게), 방언(아지망, 삼촌), 복수 수량 합산(3명+2명=5명)이 섞인 영농일지 기록 파싱 검증"
+  },
+  {
+    category: "실전 구어체 매출 통계 조회",
+    input: "야 귤비서야, 이번달 총 매출 통계랑 외상 얼마쯤 남았는지 싹 다 알려줘봐",
+    expectedAction: "query_revenue",
+    description: "구어체(야, 얼마쯤), 노이즈가 섞인 이번 달 매출액 및 출하 통계 질의 의도 파싱 검증"
+  },
+  {
+    category: "실전 구어체 품종별 출하량 조회",
+    input: "올해 나간 타이벡 귤은 총 몇 박스인가?",
+    expectedAction: "query_revenue",
+    description: "품종 필터(타이벡)와 기간 필터(올해)가 지정된 출하량 통계 질의 의도 파싱 검증"
   }
 ];
 

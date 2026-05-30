@@ -8,6 +8,7 @@ export type ActionType =
   | "create_payment" // 수금(입금) 기록
   | "create_farm_log" // 영농일지 기록
   | "query_unpaid" // 미수금 조회
+  | "query_revenue" // 매출 및 출하량 통계 조회
   | "create_customer_order" // B2C 주문 접수
   | "clarify" // 정보 부족으로 인한 되묻기
   | "unknown"; // 이해할 수 없는 발화
@@ -71,6 +72,14 @@ export interface ClarifyAction extends BaseAction {
   };
 }
 
+export interface QueryRevenueAction extends BaseAction {
+  action: "query_revenue";
+  data: {
+    period?: "today" | "month" | "year" | "all"; // 조회 기간 (오늘, 당월, 당해, 전체 등)
+    variety?: string; // 특정 품종을 지정해 물어봤는지 여부 (예: "타이벡", "한라봉")
+  };
+}
+
 export interface UnknownAction extends BaseAction {
   action: "unknown";
   data: {
@@ -83,6 +92,7 @@ export type ParsedAction =
   | CreatePaymentAction
   | CreateFarmLogAction
   | QueryUnpaidAction
+  | QueryRevenueAction
   | CreateCustomerOrderAction
   | ClarifyAction
   | UnknownAction;

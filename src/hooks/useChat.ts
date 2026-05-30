@@ -59,6 +59,9 @@ export function useChat() {
         } else if (action.action === "query_unpaid") {
           const ur = data.unpaidResult;
           replyContent = ur?.message || `[조회] ${action.data.customerName || "전체"} 미수금 내역을 확인합니다.`;
+        } else if (action.action === "query_revenue") {
+          const rr = data.revenueResult;
+          replyContent = rr?.message || `[조회] 매출 및 출하량 통계를 확인합니다.`;
         } else if (action.action === "unknown") {
           replyContent = action.data.reason || getFallbackReply();
         } else {

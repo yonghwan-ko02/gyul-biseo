@@ -4,6 +4,7 @@ import { createShipmentRecord, createCustomerOrderRecord } from "@/lib/services/
 import { createPaymentRecord } from "@/lib/services/payment-service";
 import { createFarmLogRecord } from "@/lib/services/farmlog-service";
 import { queryUnpaidRecords } from "@/lib/services/unpaid-service";
+import { queryRevenueRecord } from "@/lib/services/revenue-service";
 import type { ParsedAction } from "@/lib/ai/actions";
 
 export async function POST(request: Request) {
@@ -92,6 +93,19 @@ export async function POST(request: Request) {
       return NextResponse.json({
         action,
         unpaidResult,
+      });
+    }
+
+    // ─── 매출 및 출하 통계 조회 ───
+    if (action.action === "query_revenue") {
+      const revenueResult = await queryRevenueRecord({
+        period: action.data.period,
+        variety: action.data.variety,
+      });
+
+      return NextResponse.json({
+        action,
+        revenueResult,
       });
     }
 
