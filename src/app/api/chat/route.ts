@@ -18,6 +18,20 @@ export async function POST(request: Request) {
 
     const action: ParsedAction = await parseUserUtterance(message);
 
+    // ─── 안전 검증: 출하/주문 액션의 필수 필드가 비어있으면 차단 ───
+    if (action.action === "create_shipment" || action.action === "create_customer_order") {
+      const d = action.data;
+      if (!d.customerName || !d.variety || !d.quantity || !d.unit) {
+        console.warn("[Safety Guard] LLM이 필수 필드 없이 출하/주문 액션을 생성하려 했습니다:", JSON.stringify(action));
+        return NextResponse.json({
+          action: {
+            action: "unknown" as const,
+            data: { reason: "죄송합니다, 말씀하신 내용을 장부에 기록하기에는 정보가 부족합니다. 거래처, 품종, 수량을 포함해서 다시 말씀해 주세요." }
+          }
+        });
+      }
+    }
+
     // ─── 출하 기록 ───
     if (action.action === "create_shipment") {
       const savedShipment = await createShipmentRecord({
