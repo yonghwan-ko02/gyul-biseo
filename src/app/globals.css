@@ -4,36 +4,36 @@
 
 /* ─── 1. 디자인 토큰 (CSS 변수) ─── */
 :root {
-  /* 감귤 테마 컬러 */
-  --color-primary: #FF8C00;
-  --color-primary-dark: #E07800;
-  --color-primary-light: #FFA940;
-  --color-primary-bg: #FFF3E0;
+  /* 감귤 테마 컬러 - 보다 싱그럽고 리치한 오렌지 그라데이션 */
+  --color-primary: #FF7E00;
+  --color-primary-dark: #D45B00;
+  --color-primary-light: #FF9E3D;
+  --color-primary-bg: #FFF3E5;
 
-  --color-secondary: #2D5016;
-  --color-secondary-light: #4A7C28;
+  --color-secondary: #1E3F0C;
+  --color-secondary-light: #3A6922;
 
   /* 상태 컬러 */
-  --color-success: #22C55E;
-  --color-success-bg: #F0FDF4;
+  --color-success: #10B981;
+  --color-success-bg: #ECFDF5;
   --color-warning: #F59E0B;
   --color-warning-bg: #FFFBEB;
   --color-danger: #EF4444;
   --color-danger-bg: #FEF2F2;
-  --color-info: #3B82F6;
+  --color-info: #2563EB;
   --color-info-bg: #EFF6FF;
 
-  /* 배경 / 표면 */
-  --color-bg: #FFF9F0;
+  /* 배경 / 표면 - 누런 상아색에서 세련된 울트라 라이트 감귤 크림 샌드로 교체 */
+  --color-bg: #FDF9F4;
   --color-surface: #FFFFFF;
   --color-surface-elevated: #FFFFFF;
-  --color-border: #E5E7EB;
-  --color-border-light: #F3F4F6;
+  --color-border: #F1EBE3;
+  --color-border-light: #FAF6F0;
 
   /* 텍스트 */
-  --color-text: #1A1A1A;
-  --color-text-secondary: #6B7280;
-  --color-text-tertiary: #9CA3AF;
+  --color-text: #201D1A;
+  --color-text-secondary: #70675D;
+  --color-text-tertiary: #A69C91;
   --color-text-inverse: #FFFFFF;
 
   /* 타이포그래피 — 5070 접근성: 기본 18px */
@@ -64,33 +64,33 @@
   --space-2xl: 3rem;     /* 48px */
 
   /* 둥글기 */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
   --radius-full: 9999px;
 
-  /* 그림자 */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
-  --shadow-xl: 0 12px 40px rgba(0, 0, 0, 0.15);
+  /* 그림자 - 훨씬 풍부하고 입체감 있는 럭셔리 그림자 */
+  --shadow-sm: 0 2px 6px rgba(160, 140, 120, 0.04);
+  --shadow-md: 0 8px 24px rgba(160, 140, 120, 0.08), 0 2px 8px rgba(160, 140, 120, 0.04);
+  --shadow-lg: 0 16px 40px rgba(255, 126, 0, 0.06), 0 8px 24px rgba(160, 140, 120, 0.08);
+  --shadow-xl: 0 24px 60px rgba(255, 126, 0, 0.12), 0 12px 32px rgba(160, 140, 120, 0.06);
 
   /* 트랜지션 */
-  --transition-fast: 150ms ease;
-  --transition-normal: 250ms ease;
-  --transition-slow: 400ms ease;
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 280ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 450ms cubic-bezier(0.4, 0, 0.2, 1);
 
   /* 레이아웃 */
-  --header-height: 60px;
-  --bottom-nav-height: 72px;
+  --header-height: 64px;
+  --bottom-nav-height: 76px;
   --max-width: 480px;  /* 모바일 최적화 너비 */
   --content-padding: var(--space-md);
 
   /* 터치 영역 — 5070 접근성: 최소 48px, 권장 56px */
   --touch-min: 48px;
   --touch-target: 56px;
-  --mic-button-size: 80px;
+  --mic-button-size: 84px;
 }
 
 /* ─── 2. 글로벌 리셋 & 기본 스타일 ─── */

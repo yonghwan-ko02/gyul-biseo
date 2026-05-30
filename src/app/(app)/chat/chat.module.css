@@ -4,6 +4,8 @@
   height: calc(100dvh - var(--header-height) - var(--bottom-nav-height));
   padding-top: var(--header-height);
   padding-bottom: var(--bottom-nav-height);
+  background-color: var(--color-bg);
+  animation: fadeIn var(--transition-slow);
 }
 
 /* ─── 메시지 영역 ─── */
@@ -29,25 +31,29 @@
 }
 
 .welcomeIcon {
-  font-size: 4rem;
+  font-size: 5rem;
   animation: float 3s ease-in-out infinite;
+  filter: drop-shadow(0 8px 16px rgba(255, 126, 0, 0.25));
 }
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-12px); }
 }
 
 .welcome h2 {
   font-size: var(--font-size-xl);
+  font-weight: 900;
   color: var(--color-text);
+  letter-spacing: -0.02em;
 }
 
 .welcome p {
   font-size: var(--font-size-base);
   color: var(--color-text-secondary);
-  max-width: 300px;
+  max-width: 320px;
   line-height: var(--line-height-relaxed);
+  font-weight: 500;
 }
 
 /* ─── 입력 영역 ─── */
@@ -58,13 +64,16 @@
   transform: translateX(-50%);
   width: 100%;
   max-width: var(--max-width);
-  padding: var(--space-sm) var(--space-md);
-  background: var(--color-surface);
-  border-top: 1px solid var(--color-border-light);
+  padding: var(--space-md) var(--space-md);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-top: 1px solid rgba(255, 126, 0, 0.08);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-sm);
+  gap: var(--space-md);
+  box-shadow: 0 -4px 20px rgba(160, 140, 120, 0.04);
 }
 
 .inputRow {
@@ -78,17 +87,20 @@
   height: var(--touch-target);
   padding: 0 var(--space-md);
   border: 2px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   font-size: var(--font-size-base);
+  font-weight: 500;
   font-family: var(--font-family);
-  background: var(--color-bg);
+  background: var(--color-surface);
   color: var(--color-text);
-  transition: border-color var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .textInput:focus {
   outline: none;
   border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(255, 126, 0, 0.15), var(--shadow-sm);
 }
 
 .textInput::placeholder {
@@ -100,15 +112,16 @@
   width: var(--touch-target);
   height: var(--touch-target);
   border: none;
-  border-radius: var(--radius-lg);
-  background: var(--color-primary);
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
   color: white;
   font-size: var(--font-size-lg);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background var(--transition-fast);
+  transition: background var(--transition-fast), transform var(--transition-fast);
+  box-shadow: 0 4px 10px rgba(255, 126, 0, 0.2);
   flex-shrink: 0;
 }
 
@@ -117,48 +130,86 @@
 }
 
 .sendButton:active {
-  transform: scale(0.95);
+  transform: scale(0.92);
 }
 
-/* ─── 대형 마이크 버튼 — 핵심 인터랙션 ─── */
+/* ─── 대형 마이크 버튼 — 럭셔리 펄스 글로우 ─── */
 .micButton {
   width: var(--mic-button-size);
   height: var(--mic-button-size);
   border-radius: var(--radius-full);
   border: none;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  background: linear-gradient(135deg, #FF9E2C, #FF6F00);
   color: white;
-  font-size: 2rem;
+  font-size: 2.25rem;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(255, 140, 0, 0.4);
-  transition: all var(--transition-fast);
+  box-shadow: 0 8px 24px rgba(255, 110, 0, 0.35);
+  transition: all var(--transition-normal);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-top: var(--space-xs);
+  position: relative;
+}
+
+.micButton::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 0 0 rgba(255, 110, 0, 0.5);
+  animation: micGlow 2.5s infinite;
+  z-index: -1;
+}
+
+@keyframes micGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 110, 0, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 18px rgba(255, 110, 0, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 110, 0, 0);
+  }
 }
 
 .micButton:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 24px rgba(255, 140, 0, 0.5);
+  transform: scale(1.06);
+  box-shadow: 0 12px 32px rgba(255, 110, 0, 0.45);
 }
 
 .micButton:active {
-  transform: scale(0.95);
+  transform: scale(0.92);
 }
 
 /* 녹음 중 상태 */
 .micButton.recording {
-  animation: pulse 2s infinite;
-  background: var(--color-danger);
-  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
+  animation: recordingPulse 1.8s infinite ease-in-out;
+  background: linear-gradient(135deg, #EF4444, #C026D3);
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.45);
+}
+
+.micButton.recording::before {
+  animation: none;
+}
+
+@keyframes recordingPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.45);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 8px 36px rgba(239, 68, 68, 0.65), 0 0 0 12px rgba(239, 68, 68, 0.15);
+  }
 }
 
 /* ─── 채팅 버블 스타일 ─── */
 .messageWrapper {
   display: flex;
   width: 100%;
-  animation: slideUp 0.3s ease-out;
+  animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .userWrapper {
@@ -170,39 +221,42 @@
 }
 
 .bubble {
-  max-width: 80%;
+  max-width: 82%;
   padding: var(--space-md) var(--space-lg);
   border-radius: var(--radius-lg);
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
   word-break: break-word;
+  box-shadow: var(--shadow-sm);
 }
 
 .userBubble {
-  background: var(--color-primary);
+  background: linear-gradient(135deg, #FF951A 0%, #FF6200 100%);
   color: white;
   border-bottom-right-radius: 4px;
+  box-shadow: 0 4px 14px rgba(255, 98, 0, 0.2);
+  font-weight: 600;
 }
 
 .assistantBubble {
-  background: white;
+  background: var(--color-surface);
   color: var(--color-text);
   border: 1px solid var(--color-border);
   border-bottom-left-radius: 4px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 15px rgba(160, 140, 120, 0.04);
 }
 
 /* 로딩 애니메이션 */
 .loadingBubble {
   display: flex;
-  gap: 4px;
+  gap: 5px;
   align-items: center;
-  padding: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
 }
 
 .dot {
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   background-color: var(--color-text-tertiary);
   border-radius: 50%;
   animation: bounce 1.4s infinite ease-in-out both;
@@ -212,6 +266,7 @@
 .dot:nth-child(2) { animation-delay: -0.16s; }
 
 @keyframes bounce {
-  0%, 80%, 100% { transform: scale(0); }
-  40% { transform: scale(1); }
+  0%, 80%, 100% { transform: scale(0.2); opacity: 0.3; }
+  40% { transform: scale(1); opacity: 1; }
 }
+

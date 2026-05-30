@@ -9,12 +9,13 @@
   display: flex;
   align-items: center;
   justify-content: space-around;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid var(--color-border-light);
-  padding-bottom: env(safe-area-inset-bottom, 0);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 126, 0, 0.08);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--space-xs));
   z-index: 100;
+  box-shadow: 0 -8px 30px rgba(160, 140, 120, 0.06);
 }
 
 .item {
@@ -22,41 +23,62 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  min-width: var(--touch-target);
-  min-height: var(--touch-target);
-  padding: var(--space-xs) var(--space-sm);
+  gap: 4px;
+  min-width: 60px;
+  height: 60px;
   border-radius: var(--radius-md);
   text-decoration: none;
   color: var(--color-text-tertiary);
-  transition: all var(--transition-fast);
+  transition: all var(--transition-normal);
   -webkit-tap-highlight-color: transparent;
+  position: relative;
 }
 
 .item:hover {
-  color: var(--color-text-secondary);
-  background: var(--color-border-light);
-}
-
-.item:active {
-  transform: scale(0.95);
-}
-
-/* 활성 탭 */
-.active {
   color: var(--color-primary);
 }
 
+.item:active {
+  transform: scale(0.92);
+}
+
+/* 활성 탭 - 세련된 활성 지시등 및 스케일 업 */
+.active {
+  color: var(--color-primary-dark);
+}
+
+.active::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  width: 5px;
+  height: 5px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary);
+  box-shadow: 0 0 8px var(--color-primary-light);
+  animation: fadeIn var(--transition-fast);
+}
+
+.active .icon {
+  transform: translateY(-2px) scale(1.15);
+  filter: drop-shadow(0 4px 10px rgba(255, 126, 0, 0.25));
+}
+
 .active .label {
-  font-weight: var(--font-weight-semibold);
+  font-weight: 800;
+  color: var(--color-primary-dark);
 }
 
 .icon {
-  font-size: 1.5rem;
+  font-size: 1.45rem;
   line-height: 1;
+  transition: transform var(--transition-normal), filter var(--transition-normal);
 }
 
 .label {
   font-size: var(--font-size-xs);
+  font-weight: 600;
   line-height: 1;
+  letter-spacing: -0.01em;
 }
+
