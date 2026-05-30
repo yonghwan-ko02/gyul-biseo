@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { DashboardChart } from "@/components/DashboardChart";
+import { AiInsightWidget } from "@/components/AiInsightWidget";
 import { format, subDays, startOfMonth } from "date-fns";
 import styles from "./dashboard.module.css";
 
@@ -74,20 +75,22 @@ export default async function DashboardPage() {
 
   return (
     <div className={styles.container}>
+      <AiInsightWidget />
+
       <section className={styles.summary}>
-        <Card variant="default" padding="lg">
+        <Card variant="default" padding="lg" className={styles.recentCard}>
           <CardHeader title="오늘 출하" icon="📦" />
           <p className={`amount ${styles.bigNumber}`}>{todayBoxCount} 박스</p>
         </Card>
 
-        <Card variant="danger" padding="lg">
+        <Card variant="danger" padding="lg" className={styles.recentCard}>
           <CardHeader title="미수금 합계" icon="💸" />
           <p className={`amount amount-negative ${styles.bigNumber}`}>
             ₩{totalUnpaid.toLocaleString()}
           </p>
         </Card>
 
-        <Card variant="success" padding="lg">
+        <Card variant="success" padding="lg" className={styles.recentCard}>
           <CardHeader title="이번 달 매출 (예상)" icon="💰" />
           <p className={`amount ${styles.bigNumber}`}>
             ₩{monthRevenue.toLocaleString()}
@@ -97,7 +100,7 @@ export default async function DashboardPage() {
 
       <section className={styles.recent}>
         <h2>주간 출하량 추이</h2>
-        <Card padding="md">
+        <Card padding="md" className={styles.recentCard}>
           <DashboardChart data={chartData} />
         </Card>
       </section>
@@ -109,18 +112,22 @@ export default async function DashboardPage() {
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-md)" }}>
             {recentTransactions.map((tx) => (
-              <Card key={tx.id} padding="md">
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div>
-                    <h3 style={{ fontSize: "var(--font-size-lg)", marginBottom: "4px" }}>
+              <Card key={tx.id} padding="md" className={styles.recentCard}>
+                <div className={styles.txItem}>
+                  <div className={styles.txDetails}>
+                    <h3 className={styles.txTitle}>
                       {tx.customer.name} 
-                      {tx.status === "pending" && <span style={{ color: "var(--color-primary)", fontSize: "var(--font-size-sm)", marginLeft: "8px" }}>[주문접수]</span>}
+                      {tx.status === "pending" && (
+                        <span className={`${styles.txBadge} ${styles.txBadgePending}`}>
+                          주문접수
+                        </span>
+                      )}
                     </h3>
                     <p className="text-secondary text-sm">
                       {format(new Date(tx.createdAt), "MM/dd HH:mm")} · {tx.variety} {tx.quantity}{tx.memo?.replace('단위: ', '') || '박스'}
                     </p>
                   </div>
-                  <div className={`amount ${tx.paymentStatus === 'paid' ? 'amount-positive' : 'amount-negative'}`}>
+                  <div className={`amount ${tx.paymentStatus === 'paid' ? 'amount-positive' : 'amount-negative'} ${styles.txStatus}`}>
                     {tx.paymentStatus === 'paid' ? '결제완료' : '미수금'}
                   </div>
                 </div>

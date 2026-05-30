@@ -7,6 +7,7 @@ interface CardProps {
   padding?: "sm" | "md" | "lg";
   className?: string;
   onClick?: () => void;
+  style?: React.CSSProperties;
 }
 
 export function Card({
@@ -15,12 +16,14 @@ export function Card({
   padding = "md",
   className = "",
   onClick,
+  style,
 }: CardProps) {
   const Tag = onClick ? "button" : "div";
   return (
     <Tag
       className={`${styles.card} ${styles[variant]} ${styles[`pad-${padding}`]} ${onClick ? styles.clickable : ""} ${className}`}
       onClick={onClick}
+      style={style}
     >
       {children}
     </Tag>

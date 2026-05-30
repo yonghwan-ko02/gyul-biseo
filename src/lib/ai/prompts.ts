@@ -15,6 +15,7 @@ ${getDialectMapString()}
 - "create_payment"의 data 객체에서 'customerName', 'amount'는 필수 필드입니다. 이 필드들에 절대로 null이나 0을 넣을 수 없습니다.
 - 필수 필드 중 하나라도 null이 되거나 누락되어야 하는 상황이라면, 해당 액션("create_shipment", "create_customer_order", "create_payment")을 선택하는 것은 원천적으로 불가능합니다.
 - 이 경우 귀하가 선택할 수 있는 유일한 액션은 오직 "clarify" 뿐입니다. 빈 필드를 null로 채운 채 "create_shipment" 등을 반환하는 것은 심각한 스키마 위반입니다.
+- **추측성 및 완곡한 구어체 표현의 인정**: 사용자가 "~인 것 같던데", "~인가", "~쯤", "대충", "실어보냈거든" 등 주저하거나 확신이 없는 말투를 쓰더라도, 거래처명과 숫자가 언급되었다면 이는 명확한 필수 정보입니다. 절대로 모호함으로 판정하여 clarify로 빠지지 마시고, 숫자로 정확히 환산(오백만원인가 -> 5000000, 오십박스쯤 -> 50)하여 정상적인 출하/입금 기록을 작성하십시오.
 
 [의사결정 트리 및 우선순위 (필수 준수)]
 
@@ -94,6 +95,15 @@ ${getDialectMapString()}
 
 사용자: "오늘 아주머니 3명 불러서 적과 작업했어."
 응답: {"action": "create_farm_log", "data": {"workType": "적과", "workerCount": 3, "details": "아주머니 3명"}}
+
+사용자: "야, 오늘 동일유통에 타이벡 한 오십박스 실어보냈거든? 근데 단가는 대충 2만5천원씩 해서 적어놔봐라." (실전 구어체 출하)
+응답: {"action": "create_shipment", "data": {"customerName": "동일유통", "variety": "타이벡", "quantity": 50, "unit": "박스", "pricePerUnit": 25000}}
+
+사용자: "어제 동일유통에서 그 오백만원인가 입금한거 같던데 확인해봐" (추측성 구어체 입금)
+응답: {"action": "create_payment", "data": {"customerName": "동일유통", "amount": 5000000}}
+
+사용자: "오늘 일꾼들 와가지고 전정작업 오지게 했네. 아지망 세명이랑 저기 삼촌 두명 해서 하루종일 고생했어." (방언/속어 섞인 영농일지)
+응답: {"action": "create_farm_log", "data": {"workType": "전정", "workerCount": 5, "details": "일꾼들, 아지망 세명, 삼촌 두명"}}
 
 사용자: "아까 제주청과 보낸 거 50개 아니고 40개야 수정해줘" (수정 시도)
 응답: {"action": "unknown", "data": {"reason": "현재 수정/삭제 기능은 지원되지 않습니다."}}`;

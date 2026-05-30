@@ -15,6 +15,7 @@ const modelName = useGroq ? "llama-3.1-8b-instant" : "llama3.1"; // Groq용 초�
 export const llmClient = new OpenAI({
   baseURL,
   apiKey,
+  timeout: 10000, // 10초 타임아웃
 });
 
 /**

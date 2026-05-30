@@ -90,6 +90,26 @@ const testCases: TestCase[] = [
     input: "[주문서]\n홍길동 / 한라봉 5kg 3박스\n연락처: 010-9999-8888\n주소: 제주시 연동 123-45 2층",
     expectedAction: "create_customer_order",
     description: "줄바꿈과 슬래시, 한글 텍스트가 섞인 B2C 카카오톡 주문 템플릿의 정확한 엔티티 추출 검증"
+  },
+
+  // 7. Messy Real-world Spoken Korean
+  {
+    category: "실전 구어체 출하 기록",
+    input: "야, 오늘 동일유통에 타이벡 한 오십박스 실어보냈거든? 근데 단가는 대충 2만5천원씩 해서 적어놔봐라.",
+    expectedAction: "create_shipment",
+    description: "호칭 노이즈, 한글 수량(오십), 단가(2만5천원), 완곡어미(~거든)가 섞인 매우 거친 실전 출하 지시 파싱 검증"
+  },
+  {
+    category: "실전 구어체 입금 기록",
+    input: "어제 동일유통에서 그 오백만원인가 입금한거 같던데 확인해봐",
+    expectedAction: "create_payment",
+    description: "주저함(그), 추측성 조사(인가), 완곡어미(~같던데)가 포함된 추측형 실전 입금 보고 파싱 검증"
+  },
+  {
+    category: "실전 구어체 영농일지",
+    input: "오늘 일꾼들 와가지고 전정작업 오지게 했네. 아지망 세명이랑 저기 삼촌 두명 해서 하루종일 고생했어.",
+    expectedAction: "create_farm_log",
+    description: "속어(오지게), 방언(아지망, 삼촌), 복수 수량 합산(3명+2명=5명)이 섞인 영농일지 기록 파싱 검증"
   }
 ];
 

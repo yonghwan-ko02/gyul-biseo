@@ -15,6 +15,7 @@ const navItems: NavItem[] = [
   { href: "/dashboard", icon: "📊", label: "현황" },
   { href: "/ledger", icon: "📒", label: "장부" },
   { href: "/settlement", icon: "💰", label: "정산" },
+  { href: "/customers", icon: "👥", label: "고객" },
   { href: "/settings", icon: "⚙️", label: "설정" },
 ];
 
