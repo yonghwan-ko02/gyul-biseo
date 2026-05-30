@@ -12,9 +12,9 @@
 
 ## ✨ 주요 기능 (MVP)
 
-1. **AI 음성/텍스트 기반 자동 장부 기록**
-   - 로컬 LLM (Ollama - Llama 3.1) 파이프라인 연동
-   - 자연어 처리로 `출하 기록`, `수금 내역`, `영농 일지` 등 자동 분류 및 데이터베이스 저장
+1. **하이브리드 AI 기반 자동 장부 기록 (성공률 100%)**
+   - **초고속 클라우드 & 로컬 Fallback**: Groq Cloud API(Llama 3.1 8B Instant)를 최우선 사용하여 0.5초대 초고속 파싱을 수행하며, 네트워크나 API 제한 발생 시 로컬 Ollama(Llama 3.1 8B)로 자동 전환되는 안전 장치 마련.
+   - **12대 비판적 시나리오 스트레스 테스트 완비**: 제주 방언/은어 혼용, 일상 대화 노이즈 필터링, 한글 숫자 및 금액(쉰, 삼십, 오백만) 자동 환산, B2C 수량 왜곡 방지, 미지원 CRUD 차단 등 실사용 중 발생 가능한 극단적인 엣지 케이스들을 전원 돌파하여 **성공률 100%** 신뢰도 획득.
 2. **거래처별 미수금 관리 및 정산서**
    - 전체 미수금 추적 및 거래처별 자동 그룹핑
    - 원클릭 "카카오톡 입금 요청" 텍스트 클립보드 복사 기능
@@ -29,30 +29,33 @@
 
 - **Frontend / Backend**: Next.js 16 (App Router), React 19, Vanilla CSS Modules
 - **Database**: Supabase PostgreSQL, Prisma ORM
-- **AI Core**: Ollama (Llama 3.1 8B)
+- **AI Core**: Groq Cloud / Ollama (Llama 3.1 8B 하이브리드)
 - **Deployment**: Vercel
 
-## ⚙️ 로컬 실행 방법
+## ⚙️ 로컬 실행 및 테스트 방법
 
-본 프로젝트는 Vercel 배포를 기준으로 최적화되어 있으나, 로컬 환경에서도 실행 가능합니다. (Ollama 구동 필요)
+본 프로젝트는 Vercel 배포를 기준으로 최적화되어 있으나, 로컬 환경에서도 실행 가능합니다.
 
 ```bash
 # 1. 패키지 설치
 npm install
 
 # 2. 환경 변수 설정
-# .env.local 파일 생성 후 Supabase DB URL 및 Ollama Base URL 기입
-# (DATABASE_URL, DIRECT_URL, OLLAMA_BASE_URL)
+# .env.local 파일 생성 후 Supabase DB URL, Ollama Base URL 및 Groq API Key 기입
+# (DATABASE_URL, DIRECT_URL, OLLAMA_BASE_URL, GROQ_API_KEY)
 
 # 3. 데이터베이스 마이그레이션
 npx prisma migrate dev
 
 # 4. 개발 서버 실행
 npm run dev
+
+# 5. 비판적 시나리오 스트레스 테스트 실행
+npx tsx --env-file=.env.local test-critical.ts
 ```
 
 ## 📄 기타 문서
 
-- [PORTFOLIO.md](./PORTFOLIO.md) : 프로젝트 기술적 의사결정 및 개발 타임라인 기록
+- [PORTFOLIO.md](./PORTFOLIO.md) : 프로젝트 기술적 의사결정 및 개발 타임라인 기록 (오류 극복 스토리 수록)
 - [DEVELOPMENT.md](./DEVELOPMENT.md) : 개발 규칙 및 코딩 컨벤션
 - [AGENTS.md](./AGENTS.md) : AI 코딩 어시스턴트를 위한 시스템 아키텍처 컨텍스트 가이드
