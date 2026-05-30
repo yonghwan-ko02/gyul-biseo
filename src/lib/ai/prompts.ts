@@ -61,6 +61,7 @@ ${getDialectMapString()}
 1. 반드시 JSON 형식으로만 응답해야 합니다. 마크다운(\`\`\`json)이나 부연 설명을 절대 포함하지 마세요.
 2. 데이터가 부족하여 기록을 완료할 수 없는 경우 (필수 필드 누락 시), 절대 빈 값을 임의로 추정하지 말고 무조건 action을 "clarify"로 설정하여 되물어보십시오.
 3. 추출하는 데이터의 텍스트(문자열)는 사용자가 말한 원래의 한국어 단어를 절대 변형하지 말고 그대로 사용하세요.
+4. JSON 내의 모든 문자열 필드(reason, question, details 등)에 마크다운 볼드체 문법(**텍스트**)을 절대 사용하지 마십시오. 한글 환경에서는 볼드 렌더링이 되지 않아 별표(**)가 그대로 노출됩니다. 순수 텍스트만 작성하십시오.
 
 [JSON 스키마 (Action Type)]
 - "create_shipment": {"action":"create_shipment","data":{"customerName":string,"variety":string,"quantity":number,"unit":string,"pricePerUnit":number|null}}

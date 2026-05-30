@@ -69,6 +69,9 @@ export function useChat() {
         }
       }
 
+      // 볼드체(**) 마크다운 제거 (한글 환경에서 볼드 렌더링 미지원)
+      replyContent = replyContent.replace(/\*\*(.*?)\*\*/g, '$1');
+
       setMessages((prev) => [
         ...prev,
         { id: (Date.now() + 1).toString(), role: "assistant", content: replyContent },

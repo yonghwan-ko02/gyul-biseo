@@ -11,7 +11,7 @@ export async function queryRevenueRecord({ period = "month", variety }: QueryRev
   const farm = await prisma.farm.findFirst();
   if (!farm) {
     return {
-      message: "삼춘, 등록된 농장 정보가 없어 통계를 뽑을 수 없쿠다. 설정을 먼저 확인해봅서! 🍊",
+      message: "등록된 농장 정보가 없어 통계를 확인할 수 없습니다. 농장 설정을 먼저 확인해주세요! 🍊",
       totalAmount: 0,
       totalQuantity: 0
     };
@@ -57,7 +57,7 @@ export async function queryRevenueRecord({ period = "month", variety }: QueryRev
 
   const totalQuantity = shipments.reduce((acc, curr) => acc + curr.quantity, 0);
 
-  // 6. 제주 방언 보고서 문장 작성
+  // 6. 표준어 보고서 문장 작성
   let periodLabel = "이번 달";
   if (period === "today") periodLabel = "오늘";
   if (period === "year") periodLabel = "올해";
@@ -67,10 +67,10 @@ export async function queryRevenueRecord({ period = "month", variety }: QueryRev
 
   let message = "";
   if (totalQuantity === 0) {
-    message = `삼춘, ${periodLabel} 등록된 ${varietyLabel}출하 기록이 아직 없수다. 수확하시면 음성으로 편하게 장부에 적어봅서! 🍊`;
+    message = `${periodLabel} 등록된 ${varietyLabel}출하 기록이 아직 없습니다. 수확하시면 음성으로 편하게 장부에 적어보세요! 🍊`;
   } else {
-    message = `삼춘, ${periodLabel} ${varietyLabel}총 예상 매출은 **₩${totalAmount.toLocaleString()}원**이우다! 💰\n`;
-    message += `총 출하량은 **${totalQuantity.toLocaleString()}박스** (기록: ${shipments.length}건)로 집계되었수다. 밭일 무리하지 마시고 몸 살살해가면서 하십서! 🍊`;
+    message = `${periodLabel} ${varietyLabel}총 예상 매출은 ₩${totalAmount.toLocaleString()}원입니다! 💰\n`;
+    message += `총 출하량은 ${totalQuantity.toLocaleString()}박스 (기록: ${shipments.length}건)로 집계되었습니다. 고생 많으셨어요! 🍊`;
   }
 
   return {

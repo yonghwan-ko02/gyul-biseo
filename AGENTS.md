@@ -13,13 +13,14 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 - **Stack**: Next.js 16 (App Router), React 19, TypeScript, Vanilla CSS Modules.
 - **Database**: Supabase PostgreSQL with Prisma 5.22.0.
-- **LLM**: Local Ollama (Llama 3.1 8B).
+- **LLM**: Groq Cloud (Llama 3.1 8B Instant, primary) / Local Ollama (Llama 3.1 8B, fallback).
 
 ## 2. Core Feature Architecture
-1. **Chat UI (`/chat`)**: The user talks to the AI.
-2. **AI Action Parsing (`/api/chat`)**: Input goes to Ollama. We force a specific JSON schema using `format: 'json'`. The parsed JSON returns an `ActionType`.
-3. **Database Execution (`shipment-service.ts` etc.)**: Based on `ActionType` (e.g. `create_shipment`, `create_customer_order`, `create_payment`), Prisma executes DB operations.
+1. **Chat UI (`/chat`)**: The user talks to the AI via text or voice.
+2. **AI Action Parsing (`/api/chat`)**: Input goes to Groq/Ollama. We force a specific JSON schema using `format: 'json'`. The parsed JSON returns an `ActionType`.
+3. **Database Execution (`shipment-service.ts` etc.)**: Based on `ActionType` (e.g. `create_shipment`, `create_customer_order`, `create_payment`, `query_revenue`), Prisma executes DB operations.
 4. **Dashboards (`/dashboard`, `/ledger`, `/settlement`)**: These pages query the Prisma database to visualize data using Recharts and Card-based mobile-friendly lists.
+5. **AI Insight Widget**: The dashboard includes an AI-powered business insight widget (`/api/insight`) that analyzes farm statistics and provides friendly business advice.
 
 ## 3. Database Schema Overview
 - **Farm**: Stores the farmer's profile and bank account.
@@ -36,13 +37,20 @@ Current Actions:
 - `create_payment`: Logs money received.
 - `create_farm_log`: Logs a farming diary event.
 - `query_unpaid`: Asks how much is unpaid.
+- `query_revenue`: Queries revenue and shipment volume statistics (by period and variety).
 - `create_customer_order`: When the farmer pastes a KakaoTalk text block of a B2C order. Parses name, phone, address, and creates a "pending" shipment.
 
 ## 5. UI/UX Rules
-- **DO NOT USE Tailwind**. We use pure CSS / CSS Modules with variables defined in `index.css`.
+- **DO NOT USE Tailwind**. We use pure CSS / CSS Modules with variables defined in `globals.css`.
 - Keep text large (var(--font-size-lg) etc). Use high contrast colors.
+- Premium luxury citrus theme with glassmorphism effects, smooth gradients, and micro-animations.
 
-## 6. How to Continue Development
+## 6. AI Response Rules
+- All AI responses to the user MUST be in **standard Korean (표준어)**, not dialect. Use friendly polite speech (~습니다, ~세요, ~해요).
+- NEVER use markdown bold (`**text**`) in responses. Korean UI does not render bold markers properly.
+- The dialect map (`dialect-map.ts`) is used only for **understanding user input**, not for generating responses.
+
+## 7. How to Continue Development
 If you need to add a new feature:
 1. Verify if `schema.prisma` needs an update. If so, run `npx prisma migrate dev --name <name>`.
 2. Update the Action Types in `actions.ts` and `prompts.ts` if it involves natural language processing.

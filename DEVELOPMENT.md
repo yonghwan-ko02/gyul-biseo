@@ -11,7 +11,7 @@
 | **농장주 최우선 (Accessibility)** | 50~70대가 대상이므로 큰 폰트(최소 18px), 큰 버튼(최소 56px), 뚜렷한 대비를 준수 |
 | **음성 중심 설계 (Voice-first)** | 사용자의 주 입력 수단은 음성이며, 부족한 정보는 반드시 퀵 리플라이로 보완 요구 |
 | **데이터 불변성 (Soft Delete)** | 기록 유실 방지를 위해 DB의 물리 삭제(DELETE)는 절대 금지. `isDeleted = true`만 사용 |
-| **LLM 교체 용이성** | 현재 로컬 Ollama를 쓰지만 언제든 OpenAI로 바꿀 수 있도록 어댑터 패턴 사용 |
+| **LLM 교체 용이성** | 현재 Groq Cloud + 로컬 Ollama 하이브리드 구조이며, OpenAI 등으로도 교체 가능하도록 어댑터 패턴 사용 |
 | **명시적 복창** | AI는 데이터를 저장/수정/삭제하기 전과 후에 반드시 사용자가 이해할 수 있는 언어로 확인 복창 |
 
 ---
@@ -84,28 +84,29 @@ export function errorResponse(error: string, message: string, status: number = 4
 
 ---
 
-## 5. LLM 연동 (Ollama) 패턴
+## 5. LLM 연동 (Groq / Ollama 하이브리드) 패턴
 
-* 로컬 LLM을 사용하므로, LangChain 등 무거운 프레임워크를 쓰지 않고 기본 `fetch`를 이용한 JSON 통신을 지향합니다.
+* Groq Cloud API를 1차로 호출하여 초고속 파싱(~0.5초)을 수행하고, 실패 시 로컬 Ollama(Llama 3.1 8B)로 자동 전환합니다.
+* LangChain 등 무거운 프레임워크를 쓰지 않고 OpenAI 호환 SDK를 이용한 JSON 통신을 지향합니다.
 * Llama 3.1의 네이티브 Function Calling이 불안정할 수 있으므로, 반드시 프롬프트 내에 JSON 반환 스키마를 명시하고 `format: 'json'` 파라미터를 넘겨 강제합니다.
 
 ```typescript
-const response = await fetch(`${process.env.OLLAMA_BASE_URL}/api/chat`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    model: 'llama3.1:8b',
-    format: 'json',
-    messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: userInput }
-    ],
-    options: {
-      temperature: 0.1 // 정형화된 데이터 파싱을 위해 낮은 온도 유지
-    }
-  })
+const response = await llmClient.chat.completions.create({
+  model: modelName,
+  messages: [
+    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'user', content: userInput }
+  ],
+  temperature: 0.1, // 정형화된 데이터 파싱을 위해 낮은 온도 유지
+  response_format: { type: 'json_object' }
 });
 ```
+
+### 5.1 AI 응답 톤앤매너
+
+* 귤비서의 모든 응답은 **친근한 표준어 존댓말**(~습니다, ~세요, ~해요)을 사용합니다.
+* **방언(사투리)이나 은어**는 사용자 입력 이해용으로만 활용하며, 응답에는 절대 포함하지 않습니다.
+* **마크다운 볼드체(`**텍스트**`)**는 절대 사용하지 않습니다. 한글 환경에서는 볼드가 렌더링되지 않아 별표가 그대로 노출됩니다.
 
 ---
 
@@ -141,3 +142,4 @@ const activeShipments = await prisma.shipment.findMany({
 1. **Vanilla CSS 사용**: TailwindCSS가 설정되어 있지 않습니다. 스타일은 `.css` 파일이나 CSS Modules를 사용하여 작성하십시오.
 2. **"Phase 1 MVP" 범위 준수**: 사용자에게 불필요한 기능(예: 결제 모듈, 외부 인증)을 멋대로 덧붙이지 마십시오.
 3. **타입 안전성**: 모든 `any` 사용을 피하고 구체적인 타입을 명시하십시오.
+4. **표준어 응답**: AI 비서의 모든 응답 메시지는 표준어 존댓말을 사용하며, 방언이나 마크다운 볼드체(**) 사용을 금지합니다.

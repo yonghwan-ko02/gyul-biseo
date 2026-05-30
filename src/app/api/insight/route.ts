@@ -8,13 +8,14 @@ export const dynamic = "force-dynamic";
 const useGroq = !!process.env.GROQ_API_KEY;
 const modelName = useGroq ? "llama-3.1-8b-instant" : "llama3.1";
 
-const INSIGHT_SYSTEM_PROMPT = `당신은 제주도 감귤 농장주의 똑똑하고 따뜻한 비서 '귤비서'입니다.
+const INSIGHT_SYSTEM_PROMPT = `당신은 감귤 농장주의 똑똑하고 따뜻한 비서 '귤비서'입니다.
 농장의 경영/매출/미수금 및 영농기록 통계를 분석하여 농장주에게 든든하고 친근한 격려와 경영 진단(의사결정 보조)을 제공해야 합니다.
 
 [작성 지침]
-1. 반드시 친근한 제주도 방언이 섞인 친근하고 다정한 어조로 작성하세요. (예: "~우다", "~했주게", "~해봅서", "삼춘" 등 시니어 농장주를 삼춘이라 부르며 부드럽게 대화).
-2. 현재 농가의 수치(출하량, 미수금 비율, 미수금 최대 거래처, 영농일지 기록 횟수 등)를 구체적으로 1~2개 짚어서 칭찬하거나 우려되는 부분(예: 높은 미수금 비율)을 다정하게 진단하고, 실천할 수 있는 1개의 액션(예: "정산서 보내기", "영농일지 기록하기" 등)을 부드럽게 권고하십시오.
-3. 절대 수치나 줄바꿈을 과다하게 쓰지 말고, 2~3문장의 줄글 형태로 컴팩트하게 작성하십시오. 부연 설명이나 JSON 껍데기 없이 오직 조언 텍스트 자체만 그대로 반환하세요.`;
+1. 친근하고 다정한 표준어 존댓말(~습니다, ~세요, ~해요)로 작성하세요. 방언이나 사투리는 사용하지 마세요.
+2. 현재 농가의 수치(출하량, 미수금 비율, 미수금 최대 거래처, 영농일지 기록 횟수 등)를 구체적으로 1~2개 짚어서 칭찬하거나 우려되는 부분(예: 높은 미수금 비율)을 다정하게 진단하고, 실천할 수 있는 1개의 액션(예: "정산서 보내기", "영농일지 기록하기" 등)을 부드럽게 권고하세요.
+3. 절대 수치나 줄바꿈을 과다하게 쓰지 말고, 2~3문장의 줄글 형태로 컴팩트하게 작성하세요. 부연 설명이나 JSON 껍데기 없이 오직 조언 텍스트 자체만 그대로 반환하세요.
+4. 마크다운 볼드체(**)는 절대 사용하지 마세요.`;
 
 export async function GET() {
   try {
@@ -72,7 +73,7 @@ export async function GET() {
 - 신규 접수된 발송대기 주문서: ${pendingOrderCount}건
 - 누적 작성된 영농일지 기록 수: ${farmLogs.length}회
 
-위 통계를 바탕으로 농장주(삼춘)에게 격려와 든든한 3줄 경영 조언을 작성해줘.`;
+위 통계를 바탕으로 농장주에게 격려와 든든한 3줄 경영 조언을 작성해줘.`;
 
     // 3. LLM 호출
     const response = await llmClient.chat.completions.create({
@@ -85,13 +86,13 @@ export async function GET() {
       max_tokens: 300,
     });
 
-    const insight = response.choices[0]?.message?.content?.trim() || "오늘도 귤 농장 가꾸시느라 고생 많으셨우다! 귤비서가 삼춘의 곁에서 든든하게 장부와 기록을 돕겠주게. 🍊";
+    const insight = response.choices[0]?.message?.content?.trim() || "오늘도 귤 농장 가꾸시느라 고생 많으셨습니다! 귤비서가 곁에서 든든하게 장부와 기록을 돕겠습니다. 🍊";
 
     return NextResponse.json({ insight });
   } catch (error) {
     console.error("AI Insight Generation Error:", error);
     return NextResponse.json({ 
-      insight: "아이구 삼춘, 지금 AI 정산 엔진 연결이 조금 불안정해서 통계를 못 뽑았우다. 그래도 밭일 무리하지 말고 살살 하십서! 🍊" 
+      insight: "지금 AI 정산 엔진 연결이 조금 불안정해서 통계를 확인하지 못했습니다. 조금 뒤에 다시 확인해주세요! 🍊" 
     });
   }
 }

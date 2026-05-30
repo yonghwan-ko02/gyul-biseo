@@ -15,7 +15,7 @@ export function AiInsightWidget() {
         setInsight(data.insight);
       } catch (err) {
         console.error("Failed to load AI insight:", err);
-        setInsight("삼춘, 지금 AI 정산 비서가 밭에 나가서 답장이 늦어지쿠다. 조금 이따 대시보드를 다시 켜주십서! 🍊");
+        setInsight("지금 AI 정산 비서가 잠시 연결이 안 되고 있어요. 조금 뒤에 대시보드를 다시 확인해주세요! 🍊");
       } finally {
         setLoading(false);
       }
