@@ -27,35 +27,43 @@ export function useChat() {
       });
       
       const data = await res.json();
-      const action: ParsedAction = data.action;
-
+      
       let replyContent = "";
 
-      // Step 6 DB 연동 완료
-      if (action.action === "create_shipment") {
-        const { variety, quantity, unit } = action.data;
-        const savedName = data.savedCustomerName || action.data.customerName;
-        replyContent = getShipmentReply(savedName, variety, quantity, unit);
-      } else if (action.action === "create_customer_order") {
-        const { variety, quantity, unit, phone } = action.data;
-        const savedName = data.savedCustomerName || action.data.customerName;
-        replyContent = getOrderReply(savedName, phone, variety, quantity, unit);
-      } else if (action.action === "create_payment") {
-        const pr = data.paymentResult;
-        if (pr) {
-          replyContent = getPaymentReply(pr.customerName, pr.totalAmount, pr.paymentCount, pr.remainingAmount);
-        } else {
-          replyContent = getPaymentReply(action.data.customerName, action.data.amount);
-        }
-      } else if (action.action === "create_farm_log") {
-        replyContent = getFarmLogReply(action.data.workType, action.data.workerCount);
-      } else if (action.action === "clarify") {
-        replyContent = action.data.question;
-      } else if (action.action === "query_unpaid") {
-        const ur = data.unpaidResult;
-        replyContent = ur?.message || `[조회] ${action.data.customerName || "전체"} 미수금 내역을 확인합니다.`;
+      if (!res.ok || data.error) {
+        replyContent = `앗, 데이터를 처리하는 중에 문제가 발생했어요: ${data.error || "알 수 없는 에러"}`;
       } else {
-        replyContent = getFallbackReply();
+        const action: ParsedAction = data.action;
+
+        if (!action) {
+          replyContent = getFallbackReply();
+        } else if (action.action === "create_shipment") {
+          const { variety, quantity, unit } = action.data;
+          const savedName = data.savedCustomerName || action.data.customerName;
+          replyContent = getShipmentReply(savedName, variety, quantity, unit);
+        } else if (action.action === "create_customer_order") {
+          const { variety, quantity, unit, phone } = action.data;
+          const savedName = data.savedCustomerName || action.data.customerName;
+          replyContent = getOrderReply(savedName, phone, variety, quantity, unit);
+        } else if (action.action === "create_payment") {
+          const pr = data.paymentResult;
+          if (pr) {
+            replyContent = getPaymentReply(pr.customerName, pr.totalAmount, pr.paymentCount, pr.remainingAmount);
+          } else {
+            replyContent = getPaymentReply(action.data.customerName, action.data.amount);
+          }
+        } else if (action.action === "create_farm_log") {
+          replyContent = getFarmLogReply(action.data.workType, action.data.workerCount);
+        } else if (action.action === "clarify") {
+          replyContent = action.data.question;
+        } else if (action.action === "query_unpaid") {
+          const ur = data.unpaidResult;
+          replyContent = ur?.message || `[조회] ${action.data.customerName || "전체"} 미수금 내역을 확인합니다.`;
+        } else if (action.action === "unknown") {
+          replyContent = action.data.reason || getFallbackReply();
+        } else {
+          replyContent = getFallbackReply();
+        }
       }
 
       setMessages((prev) => [

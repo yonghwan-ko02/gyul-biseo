@@ -39,8 +39,27 @@ export async function parseUserUtterance(utterance: string): Promise<ParsedActio
       throw new Error("LLM returned empty content");
     }
 
+    let jsonString = content.trim();
+
+    // 마크다운 백틱 코드 블록 제거 (```json ... ``` 또는 ``` ... ``` 형태 추출)
+    if (jsonString.startsWith("```")) {
+      const match = jsonString.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (match && match[1]) {
+        jsonString = match[1].trim();
+      }
+    }
+
+    // 앞뒤의 불필요한 텍스트 제거하고 { 로 시작하고 } 로 끝나는 JSON 객체 영역만 찾아냄
+    if (!jsonString.startsWith("{")) {
+      const startIdx = jsonString.indexOf("{");
+      const endIdx = jsonString.lastIndexOf("}");
+      if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+        jsonString = jsonString.substring(startIdx, endIdx + 1);
+      }
+    }
+
     // JSON 파싱 (안전하게)
-    const parsed = JSON.parse(content) as ParsedAction;
+    const parsed = JSON.parse(jsonString) as ParsedAction;
     
     // 최소한 action 필드가 있는지 검증
     if (!parsed.action) {
