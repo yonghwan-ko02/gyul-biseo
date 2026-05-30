@@ -122,6 +122,20 @@ const testCases: TestCase[] = [
     input: "올해 나간 타이벡 귤은 총 몇 박스인가?",
     expectedAction: "query_revenue",
     description: "품종 필터(타이벡)와 기간 필터(올해)가 지정된 출하량 통계 질의 의도 파싱 검증"
+  },
+  
+  // 8. UI Exploration / Non-transactional requests
+  {
+    category: "비-거래 요청 (UI 탐색/시각화)",
+    input: "시각화해서 보여줘",
+    expectedAction: "unknown",
+    description: "시각화 요청이 거래처/수량 없이 들어올 때 주문으로 오분류하지 않고 unknown(또는 clarify)으로 처리하는지 검증"
+  },
+  {
+    category: "비-거래 요청 (기능 질의)",
+    input: "뭐 할 수 있어?",
+    expectedAction: "unknown",
+    description: "기능 질의가 들어올 때 안내 메시지를 주기 위해 unknown(또는 clarify)으로 처리하는지 검증"
   }
 ];
 
