@@ -11,6 +11,9 @@ interface FarmProps {
   bankName: string | null;
   accountNumber: string | null;
   accountHolder: string | null;
+  courierName: string | null;
+  courierEmail: string | null;
+  autoEmailCourier: boolean;
 }
 
 export function SettingsForm({ farm }: { farm: FarmProps }) {
@@ -21,7 +24,14 @@ export function SettingsForm({ farm }: { farm: FarmProps }) {
     bankName: farm.bankName || "",
     accountNumber: farm.accountNumber || "",
     accountHolder: farm.accountHolder || "",
+    courierName: farm.courierName || "",
+    courierEmail: farm.courierEmail || "",
+    autoEmailCourier: farm.autoEmailCourier || false,
   });
+
+  const handleToggleAutoEmail = () => {
+    setForm(prev => ({ ...prev, autoEmailCourier: !prev.autoEmailCourier }));
+  };
 
   const orderLink = typeof window !== "undefined" ? `${window.location.origin}/order/${farm.id}` : `http://localhost:3000/order/${farm.id}`;
 
@@ -106,6 +116,27 @@ export function SettingsForm({ farm }: { farm: FarmProps }) {
           <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
             <label style={{ fontSize: "var(--font-size-sm)", color: "var(--color-text-secondary)" }}>계좌번호 ( - 제외)</label>
             <input name="accountNumber" value={form.accountNumber} onChange={handleChange} placeholder="356-0000-0000-00" style={{ padding: "12px", borderRadius: "8px", border: "1px solid var(--color-border)", fontSize: "16px" }} />
+          </div>
+
+          <h3 style={{ fontSize: "var(--font-size-lg)", marginTop: "var(--space-md)", marginBottom: "4px" }}>📦 제휴 택배사 자동 연동</h3>
+          
+          <div style={{ display: "flex", gap: "12px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px", flex: 1 }}>
+              <label style={{ fontSize: "var(--font-size-sm)", color: "var(--color-text-secondary)" }}>택배사명</label>
+              <input name="courierName" value={form.courierName} onChange={handleChange} placeholder="우체국택배, CJ대한통운 등" style={{ padding: "12px", borderRadius: "8px", border: "1px solid var(--color-border)", fontSize: "16px" }} />
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px", flex: 1 }}>
+              <label style={{ fontSize: "var(--font-size-sm)", color: "var(--color-text-secondary)" }}>택배 접수 이메일</label>
+              <input type="email" name="courierEmail" value={form.courierEmail} onChange={handleChange} placeholder="office@courier.com" style={{ padding: "12px", borderRadius: "8px", border: "1px solid var(--color-border)", fontSize: "16px" }} />
+            </div>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "8px", padding: "12px", borderRadius: "8px", border: "1px solid var(--color-border)", backgroundColor: "var(--color-background)" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+              <span style={{ fontSize: "16px", fontWeight: "bold" }}>주문 접수 시 즉시 전송</span>
+              <span style={{ fontSize: "var(--font-size-xs)", color: "var(--color-text-secondary)" }}>고객 주문 등록 시 택배사로 메일을 자동 전송합니다.</span>
+            </div>
+            <input type="checkbox" checked={form.autoEmailCourier} onChange={handleToggleAutoEmail} style={{ width: "24px", height: "24px", cursor: "pointer", accentColor: "var(--color-primary)" }} />
           </div>
 
           <button type="submit" style={{

@@ -24,6 +24,10 @@ model Farm {
   accountNumber  String?  @map("account_number")
   accountHolder  String?  @map("account_holder")
   
+  courierName    String?  @map("courier_name")
+  courierEmail   String?  @map("courier_email")
+  autoEmailCourier Boolean @default(false) @map("auto_email_courier")
+  
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 

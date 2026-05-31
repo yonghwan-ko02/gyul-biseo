@@ -45,6 +45,18 @@ export function useChat() {
           const { variety, quantity, unit, phone } = action.data;
           const savedName = data.savedCustomerName || action.data.customerName;
           replyContent = getOrderReply(savedName, phone, variety, quantity, unit);
+          
+          if (data.emailResult) {
+            if (data.emailResult.success) {
+              if (data.emailResult.mode === "real") {
+                replyContent += "\n\n✉️ 제휴 택배사에 배송 의뢰 메일이 자동으로 전송되었습니다!";
+              } else {
+                replyContent += "\n\n✉️ [안내] 제휴 택배사 배송 의뢰 메일 모의 전송이 성공적으로 기록되었습니다. (시뮬레이션 모드)";
+              }
+            } else {
+              replyContent += "\n\n⚠️ 택배사 이메일 자동 전송에 실패했습니다. 설정을 확인해 주세요.";
+            }
+          }
         } else if (action.action === "create_payment") {
           const pr = data.paymentResult;
           if (pr) {

@@ -66,6 +66,7 @@ export async function POST(request: Request) {
         action, 
         savedId: savedOrder.id, 
         savedCustomerName: savedOrder.customer.name,
+        emailResult: (savedOrder as any).emailResult,
       });
     }
 

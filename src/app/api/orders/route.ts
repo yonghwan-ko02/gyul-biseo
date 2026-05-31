@@ -21,7 +21,11 @@ export async function POST(request: Request) {
       rawInput: "B2C 앱 직접 접수",
     });
 
-    return NextResponse.json({ success: true, orderId: order.id });
+    return NextResponse.json({ 
+      success: true, 
+      orderId: order.id,
+      emailResult: (order as any).emailResult,
+    });
   } catch (error) {
     console.error("[Order API Error]", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

@@ -32,7 +32,10 @@ export default async function SettingsPage() {
         phone: farm.phone,
         bankName: farm.bankName,
         accountNumber: farm.accountNumber,
-        accountHolder: farm.accountHolder
+        accountHolder: farm.accountHolder,
+        courierName: farm.courierName,
+        courierEmail: farm.courierEmail,
+        autoEmailCourier: farm.autoEmailCourier
       }} />
     </div>
   );

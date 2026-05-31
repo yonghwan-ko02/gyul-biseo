@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { sendOrderEmailToCourier } from "./email-service";
 
 interface CreateShipmentDTO {
   customerName: string;
@@ -120,5 +121,32 @@ export async function createCustomerOrderRecord(data: CreateCustomerOrderDTO) {
     },
   });
 
-  return shipment;
+  // 택배사 이메일 자동 발송 처리
+  let emailResult = null;
+  if (farm.autoEmailCourier && farm.courierEmail) {
+    try {
+      emailResult = await sendOrderEmailToCourier({
+        customerName: customer.name,
+        phone: customer.phone,
+        address: customer.address,
+        variety: shipment.variety,
+        quantity: shipment.quantity,
+        unit: data.unit,
+        memo: shipment.memo,
+      }, {
+        farmName: farm.farmName,
+        ownerName: farm.ownerName,
+        phone: farm.phone,
+        courierName: farm.courierName,
+        courierEmail: farm.courierEmail,
+      });
+    } catch (e) {
+      console.error("[Shipment Service] 택배 배송의뢰 이메일 전송 중 에러 발생:", e);
+    }
+  }
+
+  return {
+    ...shipment,
+    emailResult,
+  };
 }

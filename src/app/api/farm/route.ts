@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 export async function PUT(request: Request) {
   try {
     const body = await request.json();
-    const { id, farmName, ownerName, phone, bankName, accountNumber, accountHolder } = body;
+    const { id, farmName, ownerName, phone, bankName, accountNumber, accountHolder, courierName, courierEmail, autoEmailCourier } = body;
 
     if (!id) {
       return NextResponse.json({ error: "Missing farm ID" }, { status: 400 });
@@ -19,6 +19,9 @@ export async function PUT(request: Request) {
         bankName,
         accountNumber,
         accountHolder,
+        courierName,
+        courierEmail,
+        autoEmailCourier,
       },
     });
 
