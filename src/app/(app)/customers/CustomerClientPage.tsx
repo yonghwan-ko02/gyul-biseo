@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/Card";
 import { format } from "date-fns";
 import styles from "./customers.module.css";
@@ -33,13 +33,44 @@ interface Props {
 }
 
 export default function CustomerClientPage({ initialCustomers }: Props) {
+  // 상태 관리
+  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(
     initialCustomers.length > 0 ? initialCustomers[0].id : null
   );
 
+  // 고대비 모드 상태
+  const [isHighContrast, setIsHighContrast] = useState(false);
+
+  // 토스트 알림 상태
+  const [toast, setToast] = useState<{ message: string; type: "success" | "info" } | null>(null);
+
+  // 로컬 스토리지에서 고대비 모드 설정 복원
+  useEffect(() => {
+    const saved = localStorage.getItem("highContrast") === "true";
+    setIsHighContrast(saved);
+  }, []);
+
+  // 고대비 토글
+  const toggleHighContrast = () => {
+    const newVal = !isHighContrast;
+    setIsHighContrast(newVal);
+    localStorage.setItem("highContrast", String(newVal));
+  };
+
+  // 토스트 알림 노출 유틸
+  const showToast = (message: string, type: "success" | "info" = "success") => {
+    setToast({ message, type });
+    // 기존 대기 중인 타이머가 있을 경우를 위해 자동 소멸
+    const timer = setTimeout(() => {
+      setToast(null);
+    }, 2500);
+    return () => clearTimeout(timer);
+  };
+
   // 검색 필터링 (이름 또는 별칭으로 검색)
-  const filteredCustomers = initialCustomers.filter((c) => {
+  const filteredCustomers = customers.filter((c) => {
     const q = searchQuery.toLowerCase();
     return (
       c.name.toLowerCase().includes(q) ||
@@ -47,7 +78,7 @@ export default function CustomerClientPage({ initialCustomers }: Props) {
     );
   });
 
-  const selectedCustomer = initialCustomers.find(
+  const selectedCustomer = customers.find(
     (c) => c.id === selectedCustomerId
   );
 
@@ -67,16 +98,81 @@ export default function CustomerClientPage({ initialCustomers }: Props) {
     }
   };
 
-  // 클립보드 주소 복사 유틸
+  // 클립보드 주소 복사
   const handleCopyAddress = (address: string) => {
     navigator.clipboard.writeText(address);
-    alert("주소가 복사되었습니다! 📋");
+    showToast("📋 주소가 복사되었습니다!");
+  };
+
+  // 전체 배송 정보 문자 템플릿 복사
+  const handleCopyShareTemplate = (customer: Customer) => {
+    const text = `[귤비서] 배송 의뢰 내역
+받는 분: ${customer.name}${customer.nickname ? ` (${customer.nickname})` : ""}
+연락처: ${customer.phone || "등록 없음"}
+배송지 주소: ${customer.address || "등록 없음"}
+메모: ${customer.memo || "없음"}`;
+    
+    navigator.clipboard.writeText(text);
+    showToast("✉️ 배송 정보 전체가 복사되었습니다!");
+  };
+
+  // 문자 전송 연동 (sms: 프로토콜)
+  const handleSendSMS = (customer: Customer) => {
+    if (!customer.phone) {
+      showToast("⚠️ 연락처가 등록되지 않은 고객입니다.", "info");
+      return;
+    }
+    const text = `[귤비서] 배송 정보 확인
+받는 분: ${customer.name}
+배송지: ${customer.address || "등록 없음"}`;
+    
+    const cleanPhone = customer.phone.replace(/[^0-9]/g, "");
+    window.location.href = `sms:${cleanPhone}?body=${encodeURIComponent(text)}`;
+  };
+
+  // 즉각 출하 완료 처리 API 호출
+  const handleCompleteShipment = async (shipmentId: string) => {
+    try {
+      const res = await fetch("/api/shipments/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: shipmentId, status: "shipped" }),
+      });
+
+      if (res.ok) {
+        // 로컬 상태 변경으로 즉시 반응형 UI 업데이트
+        setCustomers((prev) =>
+          prev.map((c) => ({
+            ...c,
+            shipments: c.shipments.map((s) =>
+              s.id === shipmentId ? { ...s, status: "shipped" } : s
+            ),
+          }))
+        );
+        showToast("🚚 성공적으로 출하 완료 처리되었습니다!");
+      } else {
+        showToast("⚠️ 변경 실패. 다시 시도해 주세요.", "info");
+      }
+    } catch (e) {
+      console.error(e);
+      showToast("⚠️ 네트워크 오류가 발생했습니다.", "info");
+    }
   };
 
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${isHighContrast ? styles.highContrast : ""}`}>
+      {/* 헤더 섹션 */}
       <div className={styles.header}>
-        <h2>👥 고객 관리 (CRM)</h2>
+        <div className={styles.headerTitleRow}>
+          <h2>👥 고객 관리 (CRM)</h2>
+          <button
+            className={`${styles.contrastToggle} ${isHighContrast ? styles.activeContrastToggle : ""}`}
+            onClick={toggleHighContrast}
+            title="큰글씨 및 눈이 편한 고대비 모드를 켭니다."
+          >
+            {isHighContrast ? "🔆 일반 화면으로 보기" : "👓 고대비/큰글씨 켜기"}
+          </button>
+        </div>
         <p className="text-secondary">
           고객의 주소록과 과거 출하 및 주문 배송 내역을 한눈에 관리하세요.
         </p>
@@ -91,11 +187,19 @@ export default function CustomerClientPage({ initialCustomers }: Props) {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
+        {/* 🎙️ 음성 검색 단추 (추후 탑재 예정 기록용) */}
+        <button
+          className={styles.voiceSearchButton}
+          onClick={() => showToast("🎙️ 음성 검색 기능은 다음 업데이트에 추가될 예정입니다!", "info")}
+          title="음성 검색 (추후 적용 예정)"
+        >
+          🎙️
+        </button>
       </div>
 
       <div className={styles.layout}>
         {/* 왼쪽: 고객 목록 */}
-        <div className={styles.sidebar}>
+        <div className={`${styles.sidebar} ${selectedCustomerId ? styles.sidebarHiddenOnMobile : ""}`}>
           {filteredCustomers.length === 0 ? (
             <p className="text-secondary" style={{ padding: "var(--space-md)" }}>
               검색 결과가 없습니다.
@@ -127,7 +231,7 @@ export default function CustomerClientPage({ initialCustomers }: Props) {
                             backgroundColor: "var(--color-primary)",
                             color: "white",
                             fontSize: "var(--font-size-xs)",
-                            padding: "2px 6px",
+                            padding: "2px 8px",
                             borderRadius: "10px",
                             fontWeight: "bold"
                           }}
@@ -149,20 +253,32 @@ export default function CustomerClientPage({ initialCustomers }: Props) {
         </div>
 
         {/* 오른쪽: 상세 프로필 & 거래 이력 타임라인 */}
-        <div className={styles.detailView}>
+        <div className={`${styles.detailView} ${!selectedCustomerId ? styles.detailHiddenOnMobile : ""}`}>
           {selectedCustomer ? (
             <>
+              {/* 모바일 화면용 목록 이동 버튼 */}
+              <button
+                className={styles.backButton}
+                onClick={() => setSelectedCustomerId(null)}
+              >
+                ⬅️ 전체 고객 목록 보기
+              </button>
+
               {/* 프로필 카드 */}
               <Card padding="lg" className={styles.profileCard}>
-                <h3 className={styles.profileTitle}>
-                  {selectedCustomer.name}
-                  {selectedCustomer.nickname && ` (${selectedCustomer.nickname})`}
-                </h3>
-                <span
-                  className={`${styles.typeBadge} ${selectedCustomer.type === "direct" ? styles.typeBadgeDirect : ""}`}
-                >
-                  {getCustomerTypeLabel(selectedCustomer.type)}
-                </span>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "10px" }}>
+                  <div>
+                    <h3 className={styles.profileTitle}>
+                      {selectedCustomer.name}
+                      {selectedCustomer.nickname && ` (${selectedCustomer.nickname})`}
+                    </h3>
+                    <span
+                      className={`${styles.typeBadge} ${selectedCustomer.type === "direct" ? styles.typeBadgeDirect : ""}`}
+                    >
+                      {getCustomerTypeLabel(selectedCustomer.type)}
+                    </span>
+                  </div>
+                </div>
 
                 <div className={styles.metaGrid}>
                   <div className={styles.metaRow}>
@@ -182,15 +298,16 @@ export default function CustomerClientPage({ initialCustomers }: Props) {
                     <span className={styles.metaLabel}>📍 배송지 주소</span>
                     <span className={styles.metaValue} style={{ maxWidth: "70%" }}>
                       {selectedCustomer.address ? (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                          <span>{selectedCustomer.address}</span>
-                          <span
-                            className={styles.linkButton}
-                            style={{ fontSize: "var(--font-size-xs)", alignSelf: "flex-end" }}
-                            onClick={() => handleCopyAddress(selectedCustomer.address!)}
-                          >
-                            주소 복사하기
-                          </span>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                          <span className={styles.addressText}>{selectedCustomer.address}</span>
+                          <div style={{ display: "flex", gap: "8px", alignSelf: "flex-end" }}>
+                            <span
+                              className={styles.actionLinkButton}
+                              onClick={() => handleCopyAddress(selectedCustomer.address!)}
+                            >
+                              주소 복사
+                            </span>
+                          </div>
                         </div>
                       ) : (
                         <span className="text-secondary">기록 없음</span>
@@ -206,6 +323,23 @@ export default function CustomerClientPage({ initialCustomers }: Props) {
                       </span>
                     </div>
                   )}
+                </div>
+
+                {/* 원클릭 공유 액션 버튼 그룹 */}
+                <div className={styles.profileActions}>
+                  <button
+                    className={styles.smsButton}
+                    onClick={() => handleSendSMS(selectedCustomer)}
+                    disabled={!selectedCustomer.phone}
+                  >
+                    💬 배송 확인 문자 보내기
+                  </button>
+                  <button
+                    className={styles.shareButton}
+                    onClick={() => handleCopyShareTemplate(selectedCustomer)}
+                  >
+                    📋 전체 배송정보 복사
+                  </button>
                 </div>
               </Card>
 
@@ -230,13 +364,25 @@ export default function CustomerClientPage({ initialCustomers }: Props) {
                           <span className={styles.timelineDate}>
                             {format(new Date(s.createdAt), "yyyy.MM.dd HH:mm")}
                           </span>
-                          <span
-                            className={`${styles.timelineStatus} ${
-                              s.status === "pending" ? styles.statusPending : styles.statusShipped
-                            }`}
-                          >
-                            {s.status === "pending" ? "발송대기(주문)" : "출하완료"}
-                          </span>
+                          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                            <span
+                              className={`${styles.timelineStatus} ${
+                                s.status === "pending" ? styles.statusPending : styles.statusShipped
+                              }`}
+                            >
+                              {s.status === "pending" ? "발송대기" : "출하완료"}
+                            </span>
+                            
+                            {/* 발송 대기 주문일 때 간편 출하완료 처리 버튼 */}
+                            {s.status === "pending" && (
+                              <button
+                                className={styles.shipCompleteButton}
+                                onClick={() => handleCompleteShipment(s.id)}
+                              >
+                                🚚 발송 완료로 변경
+                              </button>
+                            )}
+                          </div>
                         </div>
                         <div className={styles.timelineContent}>
                           {s.variety} {s.quantity}
@@ -270,6 +416,13 @@ export default function CustomerClientPage({ initialCustomers }: Props) {
           )}
         </div>
       </div>
+
+      {/* 🍊 싱그러운 감귤 테마 커스텀 토스트 알림 */}
+      {toast && (
+        <div className={`${styles.toast} ${toast.type === "info" ? styles.toastInfo : ""}`}>
+          <span>{toast.message}</span>
+        </div>
+      )}
     </div>
   );
 }

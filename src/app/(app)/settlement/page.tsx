@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/Card";
-import { CopyRequestButton } from "@/components/CopyRequestButton";
+import { SettlementCardActions } from "@/components/settlement/SettlementCardActions";
 import styles from "./settlement.module.css";
 
 
@@ -62,7 +62,7 @@ export default async function SettlementPage() {
                 <span className="text-secondary">미수금 총액</span>
                 <span className={styles.totalAmount}>₩{s.totalUnpaid.toLocaleString()}</span>
               </div>
-              <CopyRequestButton customerName={s.customerName} amount={s.totalUnpaid} bankInfo={bankInfo} />
+              <SettlementCardActions customerName={s.customerName} amount={s.totalUnpaid} bankInfo={bankInfo} />
             </Card>
           ))}
         </div>

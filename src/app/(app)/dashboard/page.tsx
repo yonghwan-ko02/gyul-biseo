@@ -28,7 +28,10 @@ export default async function DashboardPage() {
   const unpaidShipments = await prisma.shipment.findMany({
     where: { paymentStatus: { in: ["unpaid", "partial"] }, isDeleted: false }
   });
-  const totalUnpaid = unpaidShipments.reduce((acc, curr) => acc + (curr.outstandingAmount || curr.totalAmount || 0), 0);
+  const totalUnpaid = unpaidShipments.reduce((acc, curr) => {
+    const amount = curr.outstandingAmount || curr.totalAmount || (curr.quantity * (curr.unitPrice || 0));
+    return acc + amount;
+  }, 0);
 
   // 3. 이번 달 예상 매출
   const monthShipments = await prisma.shipment.findMany({

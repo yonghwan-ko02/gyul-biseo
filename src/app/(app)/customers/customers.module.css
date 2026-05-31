@@ -15,9 +15,46 @@
   padding-bottom: var(--space-md);
 }
 
+.headerTitleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
 .header h2 {
   font-weight: 800;
   letter-spacing: -0.02em;
+}
+
+/* 👓 고대비 모드 토글 버튼 */
+.contrastToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 8px 16px;
+  background-color: var(--color-surface);
+  color: var(--color-primary-dark);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+  min-height: 44px;
+}
+
+.contrastToggle:hover {
+  background-color: var(--color-primary-bg);
+  transform: translateY(-1px);
+}
+
+.activeContrastToggle {
+  background-color: var(--color-primary-dark) !important;
+  color: white !important;
+  border-color: var(--color-primary-dark) !important;
 }
 
 .searchRow {
@@ -37,12 +74,35 @@
   color: var(--color-text);
   box-shadow: var(--shadow-sm);
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  min-height: 52px; /* 5070 접근성: 터치 타겟 확대 */
 }
 
 .searchInput:focus {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: 0 0 0 4px rgba(255, 140, 0, 0.15), var(--shadow-sm);
+}
+
+/* 🎙️ 음성 검색 버튼 스타일 */
+.voiceSearchButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 1.5rem;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+}
+
+.voiceSearchButton:hover {
+  background-color: var(--color-primary-bg);
+  border-color: var(--color-primary-light);
+  transform: scale(1.03);
 }
 
 .layout {
@@ -82,6 +142,7 @@
   border: 1px solid var(--color-border-light) !important;
   transition: all var(--transition-normal);
   background-color: var(--color-surface);
+  min-height: 56px; /* 터치 피드백 강화 */
 }
 
 .customerItem:hover {
@@ -206,16 +267,97 @@
   text-align: right;
 }
 
+.addressText {
+  display: block;
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--color-text);
+}
+
 .linkButton {
   color: var(--color-primary-dark);
   font-weight: 700;
   text-decoration: underline;
   cursor: pointer;
   transition: color var(--transition-fast);
+  padding: 4px 8px;
+  border-radius: 4px;
 }
 
 .linkButton:hover {
   color: var(--color-primary);
+  background-color: var(--color-primary-bg);
+}
+
+/* 📍 배송지 주소 복사용 링크 스타일 */
+.actionLinkButton {
+  color: var(--color-secondary-light);
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-border-light);
+  transition: all var(--transition-fast);
+}
+
+.actionLinkButton:hover {
+  color: var(--color-primary-dark);
+  background-color: var(--color-primary-bg);
+}
+
+/* 💬 SMS / 복사 공유용 액션 버튼 영역 */
+.profileActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+  border-top: 1px dashed var(--color-border);
+  padding-top: var(--space-lg);
+}
+
+.smsButton, .shareButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: 12px var(--space-md);
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-height: 48px;
+}
+
+.smsButton {
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+}
+
+.smsButton:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+
+.smsButton:disabled {
+  background-color: var(--color-border);
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
+}
+
+.shareButton {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border: 2px solid var(--color-border);
+}
+
+.shareButton:hover {
+  background-color: var(--color-border-light);
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
 }
 
 .historySection {
@@ -256,7 +398,7 @@
   height: 12px;
   border-radius: 50%;
   background-color: var(--color-border);
-  border: 2px solid var(--color-card-bg);
+  border: 2px solid var(--color-surface);
 }
 
 .timelineItemActive::before {
@@ -279,7 +421,7 @@
 .timelineStatus {
   font-size: var(--font-size-xs);
   font-weight: bold;
-  padding: 2px 6px;
+  padding: 2px 8px;
   border-radius: 4px;
 }
 
@@ -293,6 +435,25 @@
   color: var(--color-success);
 }
 
+/* 🚚 출하완료 변경 단추 */
+.shipCompleteButton {
+  background-color: var(--color-success);
+  color: white;
+  border: none;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.shipCompleteButton:hover {
+  background-color: #059669;
+  transform: translateY(-1px);
+}
+
 .timelineContent {
   font-size: var(--font-size-md);
   color: var(--color-text-primary);
@@ -303,4 +464,235 @@
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
   margin-top: 2px;
+}
+
+/* ⬅️ 모바일용 목록 복귀 단추 */
+.backButton {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  width: 100%;
+  padding: 12px;
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+  min-height: 48px;
+  margin-bottom: var(--space-sm);
+}
+
+.backButton:hover {
+  background-color: var(--color-border-light);
+  border-color: var(--color-primary);
+}
+
+/* 🍊 커스텀 감귤 토스트 알림 애니메이션 및 스타일 */
+@keyframes toastSlideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.toast {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translate(-50%, 0);
+  background-color: var(--color-primary-dark);
+  color: white;
+  padding: 12px 24px;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-lg);
+  font-weight: 700;
+  font-size: var(--font-size-base);
+  z-index: 1000;
+  animation: toastSlideUp var(--transition-normal) forwards;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  white-space: nowrap;
+}
+
+.toastInfo {
+  background-color: #374151;
+}
+
+/* ─────────────────────────────────────────
+   👓 고대비 모드 오버라이드
+   ───────────────────────────────────────── */
+.highContrast {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  padding: var(--space-md);
+  border-radius: var(--radius-lg);
+  border: 3px solid #000000 !important;
+  --color-bg: #FFFFFF !important;
+  --color-surface: #FFFFFF !important;
+  --color-text: #000000 !important;
+  --color-text-secondary: #111111 !important;
+  --color-border: #000000 !important;
+  --color-border-light: #222222 !important;
+}
+
+.highContrast .searchInput {
+  border: 3px solid #000000 !important;
+  color: #000000 !important;
+  font-size: calc(var(--font-size-base) * 1.15) !important;
+  font-weight: 800 !important;
+  background-color: #FFFFFF !important;
+}
+
+.highContrast .customerItem {
+  border: 2px solid #000000 !important;
+  background-color: #FFFFFF !important;
+}
+
+.highContrast .activeCustomerItem {
+  border: 4px solid var(--color-primary) !important;
+  background-color: #FFF8F0 !important;
+}
+
+.highContrast .name {
+  color: #000000 !important;
+  font-size: calc(var(--font-size-lg) * 1.15) !important;
+}
+
+.highContrast .nickname {
+  color: #D45B00 !important;
+  font-size: var(--font-size-base) !important;
+}
+
+.highContrast .typeBadge {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+}
+
+.highContrast .typeBadgeDirect {
+  background-color: #FFF8F0 !important;
+  color: var(--color-primary-dark) !important;
+  border: 2px solid var(--color-primary-dark) !important;
+}
+
+.highContrast .placeholderCard {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border: 3px dashed #000000 !important;
+}
+
+.highContrast .profileCard {
+  border: 3px solid #000000 !important;
+  border-left: 10px solid var(--color-primary) !important;
+  background: #FFFFFF !important;
+}
+
+.highContrast .profileTitle {
+  font-size: calc(var(--font-size-xl) * 1.15) !important;
+  color: #000000 !important;
+}
+
+.highContrast .metaLabel {
+  color: #111111 !important;
+  font-size: calc(var(--font-size-base) * 1.1) !important;
+  font-weight: 800 !important;
+}
+
+.highContrast .metaValue {
+  color: #000000 !important;
+  font-size: calc(var(--font-size-base) * 1.1) !important;
+  font-weight: 900 !important;
+}
+
+.highContrast .timelineItem {
+  border-left: 3px solid #000000 !important;
+}
+
+.highContrast .timelineContent {
+  font-size: calc(var(--font-size-md) * 1.15) !important;
+  font-weight: 800 !important;
+  color: #000000 !important;
+}
+
+.highContrast .actionLinkButton {
+  border: 2px solid #000000 !important;
+  color: #000000 !important;
+  background-color: #FFFFFF !important;
+  font-weight: 800 !important;
+}
+
+.highContrast .smsButton {
+  border: 2px solid #000000 !important;
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+}
+
+.highContrast .shareButton {
+  border: 3px solid #000000 !important;
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  font-weight: 900 !important;
+}
+
+.highContrast .shipCompleteButton {
+  border: 2px solid #000000 !important;
+  background-color: var(--color-success) !important;
+  color: white !important;
+  font-weight: 800 !important;
+}
+
+.highContrast .backButton {
+  border: 3px solid #000000 !important;
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
+}
+
+.highContrast .contrastToggle {
+  border: 3px solid #000000 !important;
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
+}
+
+.highContrast .activeContrastToggle {
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
+  border-color: #000000 !important;
+}
+
+/* ─────────────────────────────────────────
+   📱 모바일 레이아웃 최적화 미디어 쿼리
+   ───────────────────────────────────────── */
+@media (max-width: 768px) {
+  .sidebarHiddenOnMobile {
+    display: none !important;
+  }
+  
+  .detailHiddenOnMobile {
+    display: none !important;
+  }
+  
+  .backButton {
+    display: flex !important;
+  }
+  
+  .detailView {
+    position: static;
+  }
+  
+  .profileActions {
+    grid-template-columns: 1fr;
+  }
 }

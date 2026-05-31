@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { parseUserUtterance } from "@/lib/ai/llm";
 import { createShipmentRecord, createCustomerOrderRecord } from "@/lib/services/shipment-service";
 import { createPaymentRecord } from "@/lib/services/payment-service";
@@ -43,6 +44,7 @@ export async function POST(request: Request) {
         rawInput: message,
       });
       
+      revalidatePath("/", "layout");
       return NextResponse.json({ 
         action, 
         savedId: savedShipment.id, 
@@ -62,11 +64,12 @@ export async function POST(request: Request) {
         rawInput: message,
       });
 
+      revalidatePath("/", "layout");
       return NextResponse.json({ 
         action, 
         savedId: savedOrder.id, 
         savedCustomerName: savedOrder.customer.name,
-        emailResult: (savedOrder as any).emailResult,
+        emailResult: (savedOrder as unknown as { emailResult?: unknown }).emailResult,
       });
     }
 
@@ -78,6 +81,7 @@ export async function POST(request: Request) {
         rawInput: message,
       });
 
+      revalidatePath("/", "layout");
       return NextResponse.json({
         action,
         paymentResult: result,
@@ -93,6 +97,7 @@ export async function POST(request: Request) {
         rawInput: message,
       });
 
+      revalidatePath("/", "layout");
       return NextResponse.json({
         action,
         savedLogId: farmLog.id,

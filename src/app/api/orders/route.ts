@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createCustomerOrderRecord } from "@/lib/services/shipment-service";
 
 export async function POST(request: Request) {
@@ -21,13 +22,17 @@ export async function POST(request: Request) {
       rawInput: "B2C 앱 직접 접수",
     });
 
+    // 캐시 재검증 (현황, 장부 등 실시간 연동 보장)
+    revalidatePath("/", "layout");
+
     return NextResponse.json({ 
       success: true, 
       orderId: order.id,
-      emailResult: (order as any).emailResult,
+      emailResult: (order as unknown as { emailResult?: unknown }).emailResult,
     });
   } catch (error) {
     console.error("[Order API Error]", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Internal Server Error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
