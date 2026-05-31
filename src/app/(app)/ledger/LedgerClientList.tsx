@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/Card";
 import { format } from "date-fns";
 import styles from "./ledger.module.css";
@@ -28,6 +28,13 @@ interface Props {
 }
 
 export default function LedgerClientList({ initialShipments }: Props) {
+  const [shipments, setShipments] = useState<Shipment[]>(initialShipments);
+
+  // props 변경 시 상태 동기화
+  useEffect(() => {
+    setShipments(initialShipments);
+  }, [initialShipments]);
+
   // 각 주문별 발송 상태 추적 (loading, success, error)
   const [sendingStates, setSendingStates] = useState<Record<string, "idle" | "sending" | "success" | "error">>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -47,6 +54,13 @@ export default function LedgerClientList({ initialShipments }: Props) {
 
       if (res.ok && data.success) {
         setSendingStates((prev) => ({ ...prev, [shipmentId]: "success" }));
+        
+        // 성공 시 로컬 상태에서 출하 상태를 'shipped'로 업데이트하여 배송대기 배지와 버튼 문구를 피드백
+        setShipments((prevShipments) =>
+          prevShipments.map((s) =>
+            s.id === shipmentId ? { ...s, status: "shipped" } : s
+          )
+        );
         
         // 2초 후 완료 상태 초기화
         setTimeout(() => {
@@ -80,7 +94,7 @@ export default function LedgerClientList({ initialShipments }: Props) {
 
   return (
     <div className={styles.list}>
-      {initialShipments.map((tx) => {
+      {shipments.map((tx) => {
         const sendingState = sendingStates[tx.id] || "idle";
         
         return (

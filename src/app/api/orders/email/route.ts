@@ -60,6 +60,12 @@ export async function POST(request: Request) {
       }, { status: 500 });
     }
 
+    // 4. 이메일 발송 성공 시 DB 내 출하 상태를 'shipped'로 업데이트
+    await prisma.shipment.update({
+      where: { id: shipmentId },
+      data: { status: "shipped" },
+    });
+
     return NextResponse.json({ 
       success: true, 
       emailResult 
