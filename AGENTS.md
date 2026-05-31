@@ -21,6 +21,14 @@ This version has breaking changes — APIs, conventions, and file structure may 
 3. **Database Execution (`shipment-service.ts` etc.)**: Based on `ActionType` (e.g. `create_shipment`, `create_customer_order`, `create_payment`, `query_revenue`), Prisma executes DB operations.
 4. **Dashboards (`/dashboard`, `/ledger`, `/settlement`)**: These pages query the Prisma database to visualize data using Recharts and Card-based mobile-friendly lists.
 5. **AI Insight Widget**: The dashboard includes an AI-powered business insight widget (`/api/insight`) that analyzes farm statistics and provides friendly business advice.
+6. **Dashboard Analytics Widgets** (`src/components/dashboard/`): A rich set of data visualization components:
+   - `PendingOrderBanner`: Conditional alert for unshipped orders.
+   - `GrowthIndicator`: Month-over-month percentage change on summary cards.
+   - `QuickActionBar`: 4-button shortcut navigation with notification badges.
+   - `DashboardChartTabs`: Tab switcher between weekly shipment BarChart and monthly revenue AreaChart.
+   - `DashboardVarietyChart`: Donut chart for revenue breakdown by citrus variety.
+   - `TopUnpaidRanking`: Ranked list of top 5 customers with outstanding payments.
+   - `FarmLogWidget`: Recent farm log entries with inactivity warning.
 
 ## 3. Database Schema Overview
 - **Farm**: Stores the farmer's profile and bank account.

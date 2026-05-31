@@ -1,0 +1,430 @@
+/* ═══════════════════════════════════════════
+   🍊 대시보드 위젯 공통 스타일
+   ═══════════════════════════════════════════ */
+
+/* ─── 발송대기 주문 알림 배너 ─── */
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  background: linear-gradient(135deg, rgba(255, 140, 0, 0.08) 0%, rgba(255, 200, 100, 0.12) 100%);
+  border: 1px solid rgba(255, 140, 0, 0.2);
+  border-radius: var(--radius-lg);
+  animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bannerContent {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.bannerIcon {
+  font-size: 1.5rem;
+  animation: gentleBounce 2s infinite;
+}
+
+.bannerText {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-primary-dark);
+  margin: 0;
+}
+
+.bannerCount {
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+.bannerLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: var(--space-xs) var(--space-md);
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  min-height: var(--touch-min);
+}
+
+.bannerLink:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 126, 0, 0.3);
+  color: var(--color-text-inverse);
+}
+
+/* ─── 빠른 액션 바 ─── */
+.quickBar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-sm);
+}
+
+.quickAction {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: var(--space-md) var(--space-xs);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--color-text);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+  position: relative;
+  min-height: var(--touch-target);
+}
+
+.quickAction:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(255, 140, 0, 0.25);
+  color: var(--color-text);
+}
+
+.quickAction:active {
+  transform: translateY(0);
+}
+
+.quickActionIcon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.quickActionLabel {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.quickBadge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  background: var(--color-danger);
+  color: white;
+  border-radius: var(--radius-full);
+  font-size: 0.7rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* ─── 성장률 인디케이터 ─── */
+.growth {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.growthUp {
+  color: var(--color-success);
+}
+
+.growthDown {
+  color: var(--color-danger);
+}
+
+.growthFlat {
+  color: var(--color-text-tertiary);
+}
+
+.growthArrow {
+  font-size: 0.85em;
+}
+
+.growthLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  font-weight: 500;
+  margin-left: 2px;
+}
+
+/* ─── 거래처 TOP 5 미수금 랭킹 ─── */
+.rankingList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.rankingItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) 0;
+}
+
+.rankingRank {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: var(--font-size-sm);
+  flex-shrink: 0;
+}
+
+.rankingRank1 {
+  background: linear-gradient(135deg, #FF8C00, #FF6600);
+  color: white;
+  box-shadow: 0 2px 8px rgba(255, 102, 0, 0.3);
+}
+
+.rankingRank2 {
+  background: linear-gradient(135deg, #FFA726, #FF9100);
+  color: white;
+}
+
+.rankingRank3 {
+  background: linear-gradient(135deg, #FFB74D, #FFA726);
+  color: white;
+}
+
+.rankingRankOther {
+  background: var(--color-border-light);
+  color: var(--color-text-secondary);
+}
+
+.rankingInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.rankingName {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rankingMeta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  margin: 0;
+}
+
+.rankingBarWrap {
+  width: 100%;
+  height: 6px;
+  background: var(--color-border-light);
+  border-radius: var(--radius-full);
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+.rankingBar {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: linear-gradient(90deg, var(--color-danger), #FF6B6B);
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rankingAmount {
+  font-size: var(--font-size-base);
+  font-weight: 800;
+  color: var(--color-danger);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.rankingEmpty {
+  text-align: center;
+  padding: var(--space-xl) 0;
+  color: var(--color-text-secondary);
+}
+
+.rankingEmptyIcon {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: var(--space-sm);
+}
+
+/* ─── 영농일지 위젯 ─── */
+.farmLogList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.farmLogItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.farmLogItem:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.farmLogIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  background: var(--color-primary-bg);
+}
+
+.farmLogContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.farmLogDesc {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.farmLogDate {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  margin: 2px 0 0 0;
+}
+
+.farmLogWarning {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: rgba(255, 140, 0, 0.06);
+  border-radius: var(--radius-md);
+  border: 1px dashed rgba(255, 140, 0, 0.2);
+}
+
+.farmLogWarningIcon {
+  font-size: 1.5rem;
+}
+
+.farmLogWarningText {
+  font-size: var(--font-size-sm);
+  color: var(--color-primary-dark);
+  font-weight: 600;
+  margin: 0;
+}
+
+.farmLogEmpty {
+  text-align: center;
+  padding: var(--space-lg) 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* ─── 차트 탭 ─── */
+.chartTabs {
+  display: flex;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+}
+
+.chartTab {
+  flex: 1;
+  padding: var(--space-xs) var(--space-md);
+  background: transparent;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: inherit;
+  min-height: 40px;
+}
+
+.chartTab:hover {
+  border-color: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.chartTabActive {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+.chartTabActive:hover {
+  color: var(--color-text-inverse);
+}
+
+/* ─── 품종 차트 ─── */
+.varietyLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-md);
+  margin-top: var(--space-sm);
+  justify-content: center;
+}
+
+.varietyLegendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.varietyLegendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.varietyEmpty {
+  text-align: center;
+  padding: var(--space-xl) 0;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+}
+
+/* ─── 키프레임 ─── */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gentleBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
