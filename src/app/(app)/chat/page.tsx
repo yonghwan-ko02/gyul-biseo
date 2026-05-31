@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import styles from "./chat.module.css";
 import { useChat } from "@/hooks/useChat";
 import { useVoiceInput } from "@/hooks/useVoiceInput";
+import ConfirmationCard from "@/components/chat/ConfirmationCard";
 
 export default function ChatPage() {
   const { messages, sendMessage, isLoading } = useChat();
@@ -45,7 +46,13 @@ export default function ChatPage() {
               className={`${styles.messageWrapper} ${msg.role === "user" ? styles.userWrapper : styles.assistantWrapper}`}
             >
               <div className={`${styles.bubble} ${msg.role === "user" ? styles.userBubble : styles.assistantBubble}`}>
-                {msg.content}
+                <div>{msg.content}</div>
+                {msg.pendingAction && (
+                  <ConfirmationCard
+                    action={msg.pendingAction.action}
+                    data={msg.pendingAction.data}
+                  />
+                )}
               </div>
             </div>
           ))

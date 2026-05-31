@@ -5,6 +5,19 @@ export interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
+  pendingAction?: {
+    action: "create_shipment" | "create_customer_order";
+    data: {
+      customerName: string;
+      variety: string;
+      quantity: number;
+      unit: string;
+      pricePerUnit?: number | null;
+      phone?: string;
+      address?: string;
+      rawInput?: string;
+    };
+  };
 }
 
 export function useChat() {
@@ -29,6 +42,7 @@ export function useChat() {
       const data = await res.json();
       
       let replyContent = "";
+      let pendingAction: any = undefined;
 
       if (!res.ok || data.error) {
         replyContent = `앗, 데이터를 처리하는 중에 문제가 발생했어요: ${data.error || "알 수 없는 에러"}`;
@@ -37,6 +51,15 @@ export function useChat() {
 
         if (!action) {
           replyContent = getFallbackReply();
+        } else if (data.needsConfirmation) {
+          replyContent = "입력하신 정보를 분석했습니다. 아래 카드 내용이 정확한지 확인하시고 등록 버튼을 눌러주세요.";
+          pendingAction = {
+            action: action.action,
+            data: {
+              ...action.data,
+              rawInput: data.rawInput,
+            }
+          };
         } else if (action.action === "create_shipment") {
           const { variety, quantity, unit } = action.data;
           const savedName = data.savedCustomerName || action.data.customerName;
@@ -86,7 +109,7 @@ export function useChat() {
 
       setMessages((prev) => [
         ...prev,
-        { id: (Date.now() + 1).toString(), role: "assistant", content: replyContent },
+        { id: (Date.now() + 1).toString(), role: "assistant", content: replyContent, pendingAction },
       ]);
     } catch (e) {
       setMessages((prev) => [

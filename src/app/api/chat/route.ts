@@ -33,43 +33,21 @@ export async function POST(request: Request) {
       }
     }
 
-    // ─── 출하 기록 ───
+    // ─── 출하 기록 (중간 컨펌 유도) ───
     if (action.action === "create_shipment") {
-      const savedShipment = await createShipmentRecord({
-        customerName: action.data.customerName,
-        variety: action.data.variety,
-        quantity: action.data.quantity,
-        unit: action.data.unit,
-        pricePerUnit: action.data.pricePerUnit,
-        rawInput: message,
-      });
-      
-      revalidatePath("/", "layout");
       return NextResponse.json({ 
         action, 
-        savedId: savedShipment.id, 
-        savedCustomerName: savedShipment.customer.name,
+        needsConfirmation: true,
+        rawInput: message
       });
     }
 
-    // ─── B2C 주문 접수 ───
+    // ─── B2C 주문 접수 (중간 컨펌 유도) ───
     if (action.action === "create_customer_order") {
-      const savedOrder = await createCustomerOrderRecord({
-        customerName: action.data.customerName,
-        phone: action.data.phone,
-        address: action.data.address,
-        variety: action.data.variety,
-        quantity: action.data.quantity,
-        unit: action.data.unit,
-        rawInput: message,
-      });
-
-      revalidatePath("/", "layout");
       return NextResponse.json({ 
         action, 
-        savedId: savedOrder.id, 
-        savedCustomerName: savedOrder.customer.name,
-        emailResult: (savedOrder as unknown as { emailResult?: unknown }).emailResult,
+        needsConfirmation: true,
+        rawInput: message
       });
     }
 

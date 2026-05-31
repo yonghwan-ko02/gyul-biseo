@@ -179,3 +179,84 @@
   display: inline-block;
   animation: spin 1s linear infinite;
 }
+
+/* ─── 기간 필터 바 (Period Filter Bar) ─── */
+.filterBar {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.filterLabel {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.filterGroup {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.filterBtn {
+  padding: 10px 4px;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.filterBtn:hover {
+  background-color: var(--color-primary-bg);
+  color: var(--color-primary);
+  border-color: var(--color-primary-light);
+}
+
+.filterBtnActive {
+  background-color: var(--color-primary) !important;
+  color: white !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 4px 12px rgba(255, 126, 0, 0.15);
+}
+
+.dateRangePicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  animation: slideUp 0.2s ease-out;
+}
+
+.dateInput {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.dateInput:focus {
+  border-color: var(--color-primary);
+}
+
+.rangeSeparator {
+  font-weight: bold;
+  color: var(--color-text-tertiary);
+}
+
