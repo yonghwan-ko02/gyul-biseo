@@ -10,7 +10,7 @@ const baseURL = useGroq
   : (process.env.OLLAMA_BASE_URL ? `${process.env.OLLAMA_BASE_URL}/v1` : "http://127.0.0.1:11434/v1");
 
 const apiKey = useGroq ? process.env.GROQ_API_KEY : "ollama";
-const modelName = useGroq ? "llama-3.1-8b-instant" : "llama3.1"; // Groq용 초고속 Llama 3.1 모델
+const modelName = useGroq ? "llama-3.3-70b-versatile" : "llama3.1"; // Groq용 고성능 Llama 3.3 70B 모델
 
 export const llmClient = new OpenAI({
   baseURL,
@@ -23,12 +23,15 @@ export const llmClient = new OpenAI({
  * 사전에 정의된 JSON 액션 객체로 파싱하여 반환합니다.
  */
 export async function parseUserUtterance(utterance: string): Promise<ParsedAction> {
+  // 음성 인식(STT) 오류로 인해 숫자 사이에 공백이 들어간 경우 (예: "3 0 0" -> "300") 사전에 결합
+  const cleanUtterance = utterance.replace(/(\d)\s+(?=\d)/g, "$1");
+
   try {
     const response = await llmClient.chat.completions.create({
       model: modelName,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: utterance },
+        { role: "user", content: cleanUtterance },
       ],
       temperature: 0.1, // 안정적이고 결정론적인 출력을 위해 낮게 설정
       // Groq과 Ollama 모두 JSON 모드를 지원하므로 아래 옵션 활성화
@@ -65,6 +68,29 @@ export async function parseUserUtterance(utterance: string): Promise<ParsedActio
     // 최소한 action 필드가 있는지 검증
     if (!parsed.action) {
       throw new Error("Invalid response format: missing 'action'");
+    }
+
+    // ─── 하이브리드 안전 보정 필터 (Deterministic Safety Guard) ───
+    // 거래(출하, 주문, 입금) 요청인데 거래처명이 누락되었거나 'unknown', 'none', '미지정' 등 placeholder인 경우
+    if (
+      (parsed.action === "create_shipment" || parsed.action === "create_customer_order" || parsed.action === "create_payment") &&
+      parsed.data
+    ) {
+      const customerName = (parsed.data as any).customerName?.trim();
+      const isPlaceholder = !customerName || 
+        ["unknown", "none", "미지정", "누락", "알수없음", "알 수 없음"].includes(customerName.toLowerCase());
+
+      if (isPlaceholder) {
+        return {
+          action: "clarify",
+          data: {
+            reason: "거래처 이름 누락",
+            question: parsed.action === "create_payment" 
+              ? "어느 거래처에서 입금되었는지 이름을 알려주세요." 
+              : "어느 거래처로 보내셨는지 거래처 이름을 알려주세요."
+          }
+        };
+      }
     }
 
     return parsed;
