@@ -672,6 +672,163 @@
   border-color: #000000 !important;
 }
 
+/* 📝 고객 정보 수정 버튼 */
+.editButton {
+  background-color: var(--color-surface);
+  color: var(--color-primary-dark);
+  border: 2px solid var(--color-primary-light);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+  min-height: 38px;
+}
+
+.editButton:hover {
+  background-color: var(--color-primary-bg);
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+/* 폼 컨테이너 */
+.editFormContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.editFormTitle {
+  font-size: var(--font-size-lg);
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: var(--space-xs);
+  border-bottom: 2px solid var(--color-primary-light);
+  padding-bottom: var(--space-xs);
+}
+
+.editFormGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.editFormLabel {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.editFormInput {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  min-height: 46px;
+}
+
+.editFormInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1), var(--shadow-sm);
+}
+
+.editFormTextarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.editFormActions {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+  border-top: 1px dashed var(--color-border);
+  padding-top: var(--space-md);
+}
+
+.saveButton, .cancelButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  font-weight: 700;
+  font-size: var(--font-size-base);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-height: 48px;
+}
+
+.saveButton {
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+}
+
+.saveButton:hover {
+  background-color: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+
+.cancelButton {
+  background-color: var(--color-surface);
+  color: var(--color-text-secondary);
+  border: 2px solid var(--color-border);
+}
+
+.cancelButton:hover {
+  background-color: var(--color-border-light);
+  transform: translateY(-1px);
+}
+
+/* 🕶️ 고대비 모드 지원 */
+.highContrast .editButton {
+  border: 3px solid #000000 !important;
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
+}
+
+.highContrast .editFormTitle {
+  color: #000000 !important;
+  border-bottom: 3px solid #000000 !important;
+}
+
+.highContrast .editFormLabel {
+  color: #000000 !important;
+  font-weight: 800 !important;
+}
+
+.highContrast .editFormInput {
+  border: 3px solid #000000 !important;
+  color: #000000 !important;
+  background-color: #FFFFFF !important;
+  font-weight: 800 !important;
+}
+
+.highContrast .saveButton {
+  border: 3px solid #000000 !important;
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
+  font-weight: 900 !important;
+}
+
+.highContrast .cancelButton {
+  border: 3px solid #000000 !important;
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  font-weight: 900 !important;
+}
+
 /* ─────────────────────────────────────────
    📱 모바일 레이아웃 최적화 미디어 쿼리
    ───────────────────────────────────────── */

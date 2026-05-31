@@ -72,6 +72,11 @@ export interface CreateCustomerOrderDTO {
   rawInput?: string;
 }
 
+function cleanPhone(phone: string | null | undefined): string {
+  if (!phone) return "";
+  return phone.replace(/[^0-9]/g, "");
+}
+
 /**
  * AI 파싱 또는 B2C 전용 웹 폼에서 들어온 고객 주문(pending 상태)을 저장합니다.
  */
@@ -79,12 +84,69 @@ export async function createCustomerOrderRecord(data: CreateCustomerOrderDTO) {
   let farm = await prisma.farm.findFirst();
   if (!farm) throw new Error("농장 정보가 없습니다.");
 
-  let customer = await prisma.customer.findFirst({
+  // 이름이 일치하는 모든 거래처 검색
+  const existingCustomers = await prisma.customer.findMany({
     where: { name: data.customerName, farmId: farm.id, isDeleted: false },
   });
 
-  // 고객이 없으면 새로 생성, 있으면 기존 정보에 전화번호/주소 업데이트
-  if (!customer) {
+  let customer = null;
+  const inputPhoneClean = cleanPhone(data.phone);
+
+  if (existingCustomers.length > 0) {
+    if (inputPhoneClean) {
+      // 1. 입력된 전화번호와 번호가 같은 기존 고객을 찾습니다.
+      customer = existingCustomers.find(c => cleanPhone(c.phone) === inputPhoneClean);
+      
+      // 2. 만약 전화번호가 일치하는 고객이 없고, 기존 고객 중 전화번호가 비어 있는 고객이 있다면 동일인으로 간주해 합쳐서 업데이트합니다.
+      if (!customer) {
+        const emptyPhoneCustomer = existingCustomers.find(c => !cleanPhone(c.phone));
+        if (emptyPhoneCustomer) {
+          customer = await prisma.customer.update({
+            where: { id: emptyPhoneCustomer.id },
+            data: {
+              phone: data.phone,
+              address: data.address || emptyPhoneCustomer.address,
+            },
+          });
+        }
+      }
+      
+      // 3. 만약 모든 기존 고객이 번호를 가지고 있고, 그 번호들이 입력 번호와 전부 다르면 새로운 동명이인 고객으로 생성합니다.
+      if (!customer) {
+        const suffix = data.phone ? `(${data.phone.slice(-4)})` : "";
+        customer = await prisma.customer.create({
+          data: {
+            name: data.customerName,
+            nickname: `${data.customerName}${suffix}`,
+            type: "direct",
+            farmId: farm.id,
+            phone: data.phone,
+            address: data.address,
+          },
+        });
+      } else {
+        // 이미 매치된 고객이 있다면 주소를 최신 주소로 업데이트합니다.
+        customer = await prisma.customer.update({
+          where: { id: customer.id },
+          data: {
+            address: data.address || customer.address,
+          },
+        });
+      }
+    } else {
+      // 입력된 전화번호가 없을 경우 기존 호환성을 위해 첫 번째 일치하는 고객 선택
+      customer = existingCustomers[0];
+      if (data.address) {
+        customer = await prisma.customer.update({
+          where: { id: customer.id },
+          data: {
+            address: data.address || customer.address,
+          },
+        });
+      }
+    }
+  } else {
+    // 일치하는 기존 고객이 전혀 없으면 완전 신규 고객 생성
     customer = await prisma.customer.create({
       data: {
         name: data.customerName,
@@ -92,14 +154,6 @@ export async function createCustomerOrderRecord(data: CreateCustomerOrderDTO) {
         farmId: farm.id,
         phone: data.phone,
         address: data.address,
-      },
-    });
-  } else if (data.phone || data.address) {
-    customer = await prisma.customer.update({
-      where: { id: customer.id },
-      data: {
-        phone: data.phone || customer.phone,
-        address: data.address || customer.address,
       },
     });
   }

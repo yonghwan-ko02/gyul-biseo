@@ -82,6 +82,76 @@ export default function CustomerClientPage({ initialCustomers }: Props) {
     (c) => c.id === selectedCustomerId
   );
 
+  // 고객 정보 수정용 상태
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editNickname, setEditNickname] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editAddress, setEditAddress] = useState("");
+  const [editMemo, setEditMemo] = useState("");
+
+  // 고객이 선택되거나 변경되면 수정 입력 필드 초기화
+  useEffect(() => {
+    if (selectedCustomer) {
+      setEditName(selectedCustomer.name);
+      setEditNickname(selectedCustomer.nickname || "");
+      setEditPhone(selectedCustomer.phone || "");
+      setEditAddress(selectedCustomer.address || "");
+      setEditMemo(selectedCustomer.memo || "");
+      setIsEditing(false);
+    }
+  }, [selectedCustomerId, selectedCustomer]);
+
+  // 고객 정보 PATCH API 호출 저장
+  const handleSaveCustomer = async () => {
+    if (!selectedCustomer) return;
+    if (!editName.trim()) {
+      showToast("⚠️ 고객 이름은 필수 입력 항목입니다.", "info");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/customers", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: selectedCustomer.id,
+          name: editName.trim(),
+          nickname: editNickname.trim() || null,
+          phone: editPhone.trim() || null,
+          address: editAddress.trim() || null,
+          memo: editMemo.trim() || null,
+        }),
+      });
+
+      if (res.ok) {
+        // 로컬 상태 즉시 반영으로 갱신
+        setCustomers((prev) =>
+          prev.map((c) =>
+            c.id === selectedCustomer.id
+              ? {
+                  ...c,
+                  name: editName.trim(),
+                  nickname: editNickname.trim() || null,
+                  phone: editPhone.trim() || null,
+                  address: editAddress.trim() || null,
+                  memo: editMemo.trim() || null,
+                }
+              : c
+          )
+        );
+        setIsEditing(false);
+        showToast("💾 고객 정보가 성공적으로 수정되었습니다!");
+      } else {
+        const err = await res.json();
+        showToast(`⚠️ 수정 실패: ${err.error || "다시 시도해 주세요."}`, "info");
+      }
+    } catch (e) {
+      console.error(e);
+      showToast("⚠️ 네트워크 오류가 발생했습니다.", "info");
+    }
+  };
+
   // 거래처 타입 한국어 변환
   const getCustomerTypeLabel = (type: string) => {
     switch (type) {
@@ -266,81 +336,160 @@ export default function CustomerClientPage({ initialCustomers }: Props) {
 
               {/* 프로필 카드 */}
               <Card padding="lg" className={styles.profileCard}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "10px" }}>
-                  <div>
-                    <h3 className={styles.profileTitle}>
-                      {selectedCustomer.name}
-                      {selectedCustomer.nickname && ` (${selectedCustomer.nickname})`}
-                    </h3>
-                    <span
-                      className={`${styles.typeBadge} ${selectedCustomer.type === "direct" ? styles.typeBadgeDirect : ""}`}
-                    >
-                      {getCustomerTypeLabel(selectedCustomer.type)}
-                    </span>
-                  </div>
-                </div>
-
-                <div className={styles.metaGrid}>
-                  <div className={styles.metaRow}>
-                    <span className={styles.metaLabel}>📞 연락처</span>
-                    <span className={styles.metaValue}>
-                      {selectedCustomer.phone ? (
-                        <a href={`tel:${selectedCustomer.phone}`} className={styles.linkButton}>
-                          {selectedCustomer.phone}
-                        </a>
-                      ) : (
-                        <span className="text-secondary">기록 없음</span>
-                      )}
-                    </span>
-                  </div>
-
-                  <div className={styles.metaRow} style={{ alignItems: "flex-start" }}>
-                    <span className={styles.metaLabel}>📍 배송지 주소</span>
-                    <span className={styles.metaValue} style={{ maxWidth: "70%" }}>
-                      {selectedCustomer.address ? (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                          <span className={styles.addressText}>{selectedCustomer.address}</span>
-                          <div style={{ display: "flex", gap: "8px", alignSelf: "flex-end" }}>
-                            <span
-                              className={styles.actionLinkButton}
-                              onClick={() => handleCopyAddress(selectedCustomer.address!)}
-                            >
-                              주소 복사
-                            </span>
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-secondary">기록 없음</span>
-                      )}
-                    </span>
-                  </div>
-
-                  {selectedCustomer.memo && (
-                    <div className={styles.metaRow} style={{ alignItems: "flex-start" }}>
-                      <span className={styles.metaLabel}>📝 메모</span>
-                      <span className={styles.metaValue} style={{ maxWidth: "70%" }}>
-                        {selectedCustomer.memo}
-                      </span>
+                {isEditing ? (
+                  <div className={styles.editFormContainer}>
+                    <h3 className={styles.editFormTitle}>📝 고객 정보 수정</h3>
+                    
+                    <div className={styles.editFormGroup}>
+                      <label className={styles.editFormLabel}>👤 이름 (필수)</label>
+                      <input
+                        type="text"
+                        className={styles.editFormInput}
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        placeholder="이름을 입력하세요"
+                      />
                     </div>
-                  )}
-                </div>
 
-                {/* 원클릭 공유 액션 버튼 그룹 */}
-                <div className={styles.profileActions}>
-                  <button
-                    className={styles.smsButton}
-                    onClick={() => handleSendSMS(selectedCustomer)}
-                    disabled={!selectedCustomer.phone}
-                  >
-                    💬 배송 확인 문자 보내기
-                  </button>
-                  <button
-                    className={styles.shareButton}
-                    onClick={() => handleCopyShareTemplate(selectedCustomer)}
-                  >
-                    📋 전체 배송정보 복사
-                  </button>
-                </div>
+                    <div className={styles.editFormGroup}>
+                      <label className={styles.editFormLabel}>🏷️ 별칭 (예: 마포 삼춘, 둘째이모)</label>
+                      <input
+                        type="text"
+                        className={styles.editFormInput}
+                        value={editNickname}
+                        onChange={(e) => setEditNickname(e.target.value)}
+                        placeholder="거래처 구분을 위한 별칭을 입력하세요"
+                      />
+                    </div>
+
+                    <div className={styles.editFormGroup}>
+                      <label className={styles.editFormLabel}>📞 연락처</label>
+                      <input
+                        type="text"
+                        className={styles.editFormInput}
+                        value={editPhone}
+                        onChange={(e) => setEditPhone(e.target.value)}
+                        placeholder="전화번호를 입력하세요"
+                      />
+                    </div>
+
+                    <div className={styles.editFormGroup}>
+                      <label className={styles.editFormLabel}>📍 배송지 주소</label>
+                      <textarea
+                        className={`${styles.editFormInput} ${styles.editFormTextarea}`}
+                        value={editAddress}
+                        onChange={(e) => setEditAddress(e.target.value)}
+                        placeholder="배송지 주소를 입력하세요"
+                        rows={2}
+                      />
+                    </div>
+
+                    <div className={styles.editFormGroup}>
+                      <label className={styles.editFormLabel}>📝 메모</label>
+                      <textarea
+                        className={`${styles.editFormInput} ${styles.editFormTextarea}`}
+                        value={editMemo}
+                        onChange={(e) => setEditMemo(e.target.value)}
+                        placeholder="참고사항이나 특이사항을 적어두세요"
+                        rows={2}
+                      />
+                    </div>
+
+                    <div className={styles.editFormActions}>
+                      <button className={styles.saveButton} onClick={handleSaveCustomer}>
+                        💾 저장하기
+                      </button>
+                      <button className={styles.cancelButton} onClick={() => setIsEditing(false)}>
+                        ❌ 취소
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "10px" }}>
+                      <div>
+                        <h3 className={styles.profileTitle}>
+                          {selectedCustomer.name}
+                          {selectedCustomer.nickname && ` (${selectedCustomer.nickname})`}
+                        </h3>
+                        <span
+                          className={`${styles.typeBadge} ${selectedCustomer.type === "direct" ? styles.typeBadgeDirect : ""}`}
+                        >
+                          {getCustomerTypeLabel(selectedCustomer.type)}
+                        </span>
+                      </div>
+                      <button
+                        className={styles.editButton}
+                        onClick={() => setIsEditing(true)}
+                        title="고객 정보를 수정합니다"
+                      >
+                        📝 수정하기
+                      </button>
+                    </div>
+
+                    <div className={styles.metaGrid}>
+                      <div className={styles.metaRow}>
+                        <span className={styles.metaLabel}>📞 연락처</span>
+                        <span className={styles.metaValue}>
+                          {selectedCustomer.phone ? (
+                            <a href={`tel:${selectedCustomer.phone}`} className={styles.linkButton}>
+                              {selectedCustomer.phone}
+                            </a>
+                          ) : (
+                            <span className="text-secondary">기록 없음</span>
+                          )}
+                        </span>
+                      </div>
+
+                      <div className={styles.metaRow} style={{ alignItems: "flex-start" }}>
+                        <span className={styles.metaLabel}>📍 배송지 주소</span>
+                        <span className={styles.metaValue} style={{ maxWidth: "70%" }}>
+                          {selectedCustomer.address ? (
+                            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                              <span className={styles.addressText}>{selectedCustomer.address}</span>
+                              <div style={{ display: "flex", gap: "8px", alignSelf: "flex-end" }}>
+                                <span
+                                  className={styles.actionLinkButton}
+                                  onClick={() => handleCopyAddress(selectedCustomer.address!)}
+                                >
+                                  주소 복사
+                                </span>
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-secondary">기록 없음</span>
+                          )}
+                        </span>
+                      </div>
+
+                      {selectedCustomer.memo && (
+                        <div className={styles.metaRow} style={{ alignItems: "flex-start" }}>
+                          <span className={styles.metaLabel}>📝 메모</span>
+                          <span className={styles.metaValue} style={{ maxWidth: "70%" }}>
+                            {selectedCustomer.memo}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 원클릭 공유 액션 버튼 그룹 */}
+                    <div className={styles.profileActions}>
+                      <button
+                        className={styles.smsButton}
+                        onClick={() => handleSendSMS(selectedCustomer)}
+                        disabled={!selectedCustomer.phone}
+                      >
+                        💬 배송 확인 문자 보내기
+                      </button>
+                      <button
+                        className={styles.shareButton}
+                        onClick={() => handleCopyShareTemplate(selectedCustomer)}
+                      >
+                        📋 전체 배송정보 복사
+                      </button>
+                    </div>
+                  </>
+                )}
               </Card>
 
               {/* 과거 배송 및 출하 이력 타임라인 */}

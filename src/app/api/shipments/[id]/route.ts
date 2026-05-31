@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 
+function cleanPhone(phone: string | null | undefined): string {
+  if (!phone) return "";
+  return phone.replace(/[^0-9]/g, "");
+}
+
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -41,14 +46,72 @@ export async function PATCH(
 
     // 3. 거래처 정보 업데이트 또는 변경
     let customerId = shipment.customerId;
-    if (customerName && customerName !== shipment.customer.name) {
-      // 거래처 이름이 바뀐 경우 새로운 거래처 찾기 혹은 생성
-      let customer = await prisma.customer.findFirst({
+    const incomingPhoneClean = cleanPhone(phone);
+
+    if (customerName) {
+      // 거래처 이름이 제공된 경우
+      const existingCustomers = await prisma.customer.findMany({
         where: { name: customerName, farmId: farm.id, isDeleted: false },
       });
 
-      if (!customer) {
-        customer = await prisma.customer.create({
+      let targetCustomer = null;
+
+      if (existingCustomers.length > 0) {
+        if (incomingPhoneClean) {
+          // 1. 번호가 같은 기존 고객 찾기
+          targetCustomer = existingCustomers.find(c => cleanPhone(c.phone) === incomingPhoneClean);
+
+          // 2. 번호가 같은 고객이 없는데 번호가 빈 기존 고객이 있는 경우 병합
+          if (!targetCustomer) {
+            const emptyPhoneCustomer = existingCustomers.find(c => !cleanPhone(c.phone));
+            if (emptyPhoneCustomer) {
+              targetCustomer = await prisma.customer.update({
+                where: { id: emptyPhoneCustomer.id },
+                data: {
+                  phone: phone,
+                  address: address !== undefined ? address : emptyPhoneCustomer.address,
+                },
+              });
+            }
+          }
+
+          // 3. 번호가 전부 다른 경우 새로운 동명이인 고객 생성
+          if (!targetCustomer) {
+            const suffix = phone ? `(${phone.slice(-4)})` : "";
+            targetCustomer = await prisma.customer.create({
+              data: {
+                name: customerName,
+                nickname: `${customerName}${suffix}`,
+                type: "direct",
+                farmId: farm.id,
+                phone: phone || null,
+                address: address || null,
+              },
+            });
+          } else {
+            // 주소만 업데이트
+            targetCustomer = await prisma.customer.update({
+              where: { id: targetCustomer.id },
+              data: {
+                address: address !== undefined ? address : targetCustomer.address,
+              },
+            });
+          }
+        } else {
+          // 전화번호가 안 온 경우 첫 번째 동일 이름 고객 선택
+          targetCustomer = existingCustomers[0];
+          if (address !== undefined) {
+            targetCustomer = await prisma.customer.update({
+              where: { id: targetCustomer.id },
+              data: {
+                address: address,
+              },
+            });
+          }
+        }
+      } else {
+        // 동일 이름의 기존 고객이 아예 없는 경우 새로 생성
+        targetCustomer = await prisma.customer.create({
           data: {
             name: customerName,
             type: "direct",
@@ -57,19 +120,11 @@ export async function PATCH(
             address: address || null,
           },
         });
-      } else {
-        // 이미 존재하는 거래처라면 연락처와 주소 업데이트
-        customer = await prisma.customer.update({
-          where: { id: customer.id },
-          data: {
-            phone: phone !== undefined ? phone : customer.phone,
-            address: address !== undefined ? address : customer.address,
-          },
-        });
       }
-      customerId = customer.id;
+
+      customerId = targetCustomer.id;
     } else {
-      // 거래처 이름이 같은 경우, 전화번호나 주소만 업데이트
+      // 거래처 이름이 오지 않은 경우, 현재 배송 정보의 고객 전화번호/주소만 업데이트
       await prisma.customer.update({
         where: { id: shipment.customerId },
         data: {
