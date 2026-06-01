@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styles from "./ConfirmationCard.module.css";
 
 interface Props {
@@ -36,6 +36,66 @@ export default function ConfirmationCard({ action, data }: Props) {
 
   const [status, setStatus] = useState<"pending" | "registering" | "success" | "cancelled" | "error">("pending");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // 실시간 고객 매칭 및 유사 추천 상태
+  const [similarCustomers, setSimilarCustomers] = useState<any[]>([]);
+  const [matchedCustomer, setMatchedCustomer] = useState<any | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    const query = form.customerName.trim();
+    if (!query || query === "미지정 거래처") {
+      setSimilarCustomers([]);
+      setMatchedCustomer(null);
+      return;
+    }
+
+    setIsSearching(true);
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/customers?q=${encodeURIComponent(query)}`);
+        if (res.ok) {
+          const resData = await res.json();
+          const list = resData.customers || [];
+          
+          // 정확히 이름이 일치하는 고객 매칭
+          const exact = list.find((c: any) => c.name === query || c.nickname === query);
+          
+          if (exact) {
+            setMatchedCustomer(exact);
+            setSimilarCustomers(list.filter((c: any) => c.id !== exact.id));
+            
+            // 기존 고객의 정보가 있고 입력 폼이 비어있다면 자동 prefill
+            setForm((prev) => ({
+              ...prev,
+              phone: prev.phone || exact.phone || "",
+              address: prev.address || exact.address || "",
+            }));
+          } else {
+            setMatchedCustomer(null);
+            setSimilarCustomers(list);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch similar customers:", e);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [form.customerName]);
+
+  const handleSelectCustomer = (customer: any) => {
+    setForm((prev) => ({
+      ...prev,
+      customerName: customer.name,
+      // 주문서 등록(B2C)일 때 연락처/주소지가 비어있다면 기존 고객 정보로 자동완성
+      phone: prev.phone || customer.phone || "",
+      address: prev.address || customer.address || "",
+      recipientName: prev.recipientName === prev.customerName ? customer.name : prev.recipientName,
+    }));
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -130,18 +190,47 @@ export default function ConfirmationCard({ action, data }: Props) {
         {/* 거래처명 */}
         <div className={styles.field}>
           <label className={styles.label}>{isShipment ? "거래처 (성함)" : "주문자 (결제자 성함)"}</label>
-          <input
-            type="text"
-            name="customerName"
-            className={styles.input}
-            value={form.customerName}
-            onChange={handleInputChange}
-            placeholder={isShipment ? "예: 홍길동, 제주청과" : "예: 홍길동"}
-            disabled={status === "registering"}
-          />
-        </div>
+          <div className={styles.inputContainer}>
+            <input
+              type="text"
+              name="customerName"
+              className={styles.input}
+              value={form.customerName}
+              onChange={handleInputChange}
+              placeholder={isShipment ? "예: 홍길동, 제주청과" : "예: 홍길동"}
+              disabled={status === "registering"}
+            />
+            {isSearching && <span className={styles.searchingSpinner} />}
+          </div>
+          
+          {/* 매칭 완료 배지 */}
+          {matchedCustomer && (
+            <div className={styles.matchedBadge}>
+              <span className={styles.matchedIcon}>✓</span>
+              <span>기존 고객 매칭됨: {matchedCustomer.name}{matchedCustomer.nickname ? ` (${matchedCustomer.nickname})` : ""}{matchedCustomer.phone ? ` · ${matchedCustomer.phone}` : ""}</span>
+            </div>
+          )}
 
-        {/* 품종 */}
+          {/* 유사 고객 추천 칩스 */}
+          {!matchedCustomer && similarCustomers.length > 0 && (
+            <div className={styles.suggestionArea}>
+              <span className={styles.suggestionLabel}>혹시 아래 기존 고객인가요?</span>
+              <div className={styles.suggestionChips}>
+                {similarCustomers.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className={styles.suggestionChip}
+                    onClick={() => handleSelectCustomer(c)}
+                    disabled={status === "registering"}
+                  >
+                    👤 {c.name}{c.nickname ? ` (${c.nickname})` : ""}{c.phone ? ` · ${c.phone.slice(-4)}` : ""}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
         <div className={styles.field}>
           <label className={styles.label}>품종</label>
           <input
