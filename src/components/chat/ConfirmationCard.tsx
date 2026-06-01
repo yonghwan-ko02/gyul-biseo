@@ -7,6 +7,7 @@ interface Props {
   action: "create_shipment" | "create_customer_order";
   data: {
     customerName: string;
+    recipientName?: string;
     variety: string;
     quantity: number;
     unit: string;
@@ -23,6 +24,7 @@ const COMMON_UNITS = ["박스", "콘테나", "kg", "개"];
 export default function ConfirmationCard({ action, data }: Props) {
   const [form, setForm] = useState({
     customerName: data.customerName || "미지정 거래처",
+    recipientName: data.recipientName || data.customerName || "",
     variety: data.variety || "노지감귤",
     quantity: data.quantity || 1,
     unit: data.unit || "박스",
@@ -127,14 +129,14 @@ export default function ConfirmationCard({ action, data }: Props) {
       <div className={styles.form}>
         {/* 거래처명 */}
         <div className={styles.field}>
-          <label className={styles.label}>거래처 (성함)</label>
+          <label className={styles.label}>{isShipment ? "거래처 (성함)" : "주문자 (결제자 성함)"}</label>
           <input
             type="text"
             name="customerName"
             className={styles.input}
             value={form.customerName}
             onChange={handleInputChange}
-            placeholder="예: 홍길동, 제주청과"
+            placeholder={isShipment ? "예: 홍길동, 제주청과" : "예: 홍길동"}
             disabled={status === "registering"}
           />
         </div>
@@ -241,6 +243,19 @@ export default function ConfirmationCard({ action, data }: Props) {
         {/* B2C 주문일 때: 연락처 및 주소 */}
         {!isShipment && (
           <>
+            <div className={styles.field}>
+              <label className={styles.label}>받는 분 성함</label>
+              <input
+                type="text"
+                name="recipientName"
+                className={styles.input}
+                value={form.recipientName}
+                onChange={handleInputChange}
+                placeholder="예: 김철수 (비워두면 주문자와 동일)"
+                disabled={status === "registering"}
+              />
+            </div>
+
             <div className={styles.field}>
               <label className={styles.label}>받는 분 연락처</label>
               <input

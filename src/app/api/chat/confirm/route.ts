@@ -25,6 +25,7 @@ export async function POST(request: Request) {
     } else if (action === "create_customer_order") {
       savedRecord = await createCustomerOrderRecord({
         customerName: data.customerName,
+        recipientName: data.recipientName,
         phone: data.phone,
         address: data.address,
         variety: data.variety,

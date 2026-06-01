@@ -22,6 +22,9 @@ interface Shipment {
   totalAmount?: number | null;
   outstandingAmount?: number | null;
   customer: Customer;
+  recipientName?: string | null;
+  recipientPhone?: string | null;
+  recipientAddress?: string | null;
 }
 
 interface Props {
@@ -42,6 +45,9 @@ export default function EditShipmentModal({ shipment, onClose, onSaved }: Props)
     customerName: shipment.customer.name,
     phone: shipment.customer.phone || "",
     address: shipment.customer.address || "",
+    recipientName: shipment.recipientName || shipment.customer.name || "",
+    recipientPhone: shipment.recipientPhone || shipment.customer.phone || "",
+    recipientAddress: shipment.recipientAddress || shipment.customer.address || "",
     variety: shipment.variety,
     quantity: shipment.quantity,
     unit: getUnitFromMemo(shipment.memo),
@@ -164,10 +170,10 @@ export default function EditShipmentModal({ shipment, onClose, onSaved }: Props)
 
         <div className={styles.body}>
           {/* 거래처 정보 섹션 */}
-          <div className={styles.sectionTitle}>🤝 거래처 정보</div>
+          <div className={styles.sectionTitle}>💳 주문자 (결제처) 정보</div>
 
           <div className={styles.field}>
-            <label className={styles.label}>거래처 이름 (성함)</label>
+            <label className={styles.label}>주문자 이름 (성함)</label>
             <input
               type="text"
               name="customerName"
@@ -179,7 +185,7 @@ export default function EditShipmentModal({ shipment, onClose, onSaved }: Props)
 
           <div className={styles.row}>
             <div className={styles.field}>
-              <label className={styles.label}>연락처</label>
+              <label className={styles.label}>주문자 연락처</label>
               <input
                 type="text"
                 name="phone"
@@ -190,7 +196,7 @@ export default function EditShipmentModal({ shipment, onClose, onSaved }: Props)
               />
             </div>
             <div className={styles.field}>
-              <label className={styles.label}>배송 주소</label>
+              <label className={styles.label}>주문자 주소</label>
               <input
                 type="text"
                 name="address"
@@ -198,6 +204,45 @@ export default function EditShipmentModal({ shipment, onClose, onSaved }: Props)
                 value={form.address}
                 onChange={handleInputChange}
                 placeholder="지번/도로명 주소"
+              />
+            </div>
+          </div>
+
+          {/* 받는 분 정보 섹션 */}
+          <div className={styles.sectionTitle}>🎁 받는 분 (수령인) 정보</div>
+
+          <div className={styles.field}>
+            <label className={styles.label}>받는 분 성함</label>
+            <input
+              type="text"
+              name="recipientName"
+              className={styles.input}
+              value={form.recipientName}
+              onChange={handleInputChange}
+            />
+          </div>
+
+          <div className={styles.row}>
+            <div className={styles.field}>
+              <label className={styles.label}>수령인 연락처</label>
+              <input
+                type="text"
+                name="recipientPhone"
+                className={styles.input}
+                value={form.recipientPhone}
+                onChange={handleInputChange}
+                placeholder="010-0000-0000"
+              />
+            </div>
+            <div className={styles.field}>
+              <label className={styles.label}>배송지 주소</label>
+              <input
+                type="text"
+                name="recipientAddress"
+                className={styles.input}
+                value={form.recipientAddress}
+                onChange={handleInputChange}
+                placeholder="상세 배송 주소"
               />
             </div>
           </div>

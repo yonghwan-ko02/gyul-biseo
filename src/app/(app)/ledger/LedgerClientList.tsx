@@ -26,6 +26,9 @@ interface Shipment {
   totalAmount?: number | null;
   outstandingAmount?: number | null;
   customer: Customer;
+  recipientName?: string | null;
+  recipientPhone?: string | null;
+  recipientAddress?: string | null;
 }
 
 interface Props {
@@ -287,6 +290,11 @@ export default function LedgerClientList({ initialShipments }: Props) {
                   <div>
                     <h3 className={styles.customerName}>
                       {tx.customer.name}
+                      {tx.recipientName && tx.recipientName !== tx.customer.name && (
+                        <span style={{ fontSize: "14px", fontWeight: "normal", color: "var(--color-text-secondary)", marginLeft: "8px" }}>
+                          (받는 분: {tx.recipientName})
+                        </span>
+                      )}
                       {tx.status === "pending" ? (
                         <span className={styles.badgePending}>발송대기</span>
                       ) : (
@@ -372,16 +380,16 @@ export default function LedgerClientList({ initialShipments }: Props) {
                     </div>
                   )}
 
-                  {tx.customer.phone && (
+                  {(tx.recipientPhone || tx.customer.phone) && (
                     <div className={styles.infoRow}>
                       <span className="text-secondary">연락처</span>
-                      <span className={styles.infoValue}>{tx.customer.phone}</span>
+                      <span className={styles.infoValue}>{tx.recipientPhone || tx.customer.phone}</span>
                     </div>
                   )}
-                  {tx.customer.address && (
+                  {(tx.recipientAddress || tx.customer.address) && (
                     <div className={styles.infoRow}>
                       <span className="text-secondary">배송지</span>
-                      <span className={styles.infoValue}>{tx.customer.address}</span>
+                      <span className={styles.infoValue}>{tx.recipientAddress || tx.customer.address}</span>
                     </div>
                   )}
                 </div>

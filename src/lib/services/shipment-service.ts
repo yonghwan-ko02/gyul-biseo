@@ -64,6 +64,7 @@ export async function createShipmentRecord(data: CreateShipmentDTO) {
 
 export interface CreateCustomerOrderDTO {
   customerName: string;
+  recipientName?: string;
   phone?: string;
   address?: string;
   variety: string;
@@ -84,81 +85,104 @@ export async function createCustomerOrderRecord(data: CreateCustomerOrderDTO) {
   let farm = await prisma.farm.findFirst();
   if (!farm) throw new Error("농장 정보가 없습니다.");
 
-  // 이름이 일치하는 모든 거래처 검색
-  const existingCustomers = await prisma.customer.findMany({
-    where: { name: data.customerName, farmId: farm.id, isDeleted: false },
-  });
-
+  const isGift = !!(data.recipientName && data.recipientName !== data.customerName);
   let customer = null;
-  const inputPhoneClean = cleanPhone(data.phone);
 
-  if (existingCustomers.length > 0) {
-    if (inputPhoneClean) {
-      // 1. 입력된 전화번호와 번호가 같은 기존 고객을 찾습니다.
-      customer = existingCustomers.find(c => cleanPhone(c.phone) === inputPhoneClean);
-      
-      // 2. 만약 전화번호가 일치하는 고객이 없고, 기존 고객 중 전화번호가 비어 있는 고객이 있다면 동일인으로 간주해 합쳐서 업데이트합니다.
-      if (!customer) {
-        const emptyPhoneCustomer = existingCustomers.find(c => !cleanPhone(c.phone));
-        if (emptyPhoneCustomer) {
-          customer = await prisma.customer.update({
-            where: { id: emptyPhoneCustomer.id },
+  if (isGift) {
+    // ─── [선물 주문 / 다중 배송 시나리오] ───
+    // 구매자(주문자)를 Customer로 지정합니다. 구매자의 연락처/배송지가 없으므로, 
+    // 동일인 구별이 어렵기 때문에 이름이 같은 첫 번째 고객을 매칭하고 없으면 새로 만듭니다.
+    const existingPayer = await prisma.customer.findFirst({
+      where: { name: data.customerName, farmId: farm.id, isDeleted: false },
+    });
+
+    if (existingPayer) {
+      customer = existingPayer;
+    } else {
+      customer = await prisma.customer.create({
+        data: {
+          name: data.customerName,
+          type: "direct",
+          farmId: farm.id,
+        },
+      });
+    }
+  } else {
+    // ─── [자가 소비 / 일반 주문 시나리오 (기존 로직 유지)] ───
+    const existingCustomers = await prisma.customer.findMany({
+      where: { name: data.customerName, farmId: farm.id, isDeleted: false },
+    });
+
+    const inputPhoneClean = cleanPhone(data.phone);
+
+    if (existingCustomers.length > 0) {
+      if (inputPhoneClean) {
+        // 1. 입력된 전화번호와 번호가 같은 기존 고객을 찾습니다.
+        customer = existingCustomers.find(c => cleanPhone(c.phone) === inputPhoneClean);
+        
+        // 2. 만약 전화번호가 일치하는 고객이 없고, 기존 고객 중 전화번호가 비어 있는 고객이 있다면 동일인으로 간주해 합쳐서 업데이트합니다.
+        if (!customer) {
+          const emptyPhoneCustomer = existingCustomers.find(c => !cleanPhone(c.phone));
+          if (emptyPhoneCustomer) {
+            customer = await prisma.customer.update({
+              where: { id: emptyPhoneCustomer.id },
+              data: {
+                phone: data.phone,
+                address: data.address || emptyPhoneCustomer.address,
+              },
+            });
+          }
+        }
+        
+        // 3. 만약 모든 기존 고객이 번호를 가지고 있고, 그 번호들이 입력 번호와 전부 다르면 새로운 동명이인 고객으로 생성합니다.
+        if (!customer) {
+          const suffix = data.phone ? `(${data.phone.slice(-4)})` : "";
+          customer = await prisma.customer.create({
             data: {
+              name: data.customerName,
+              nickname: `${data.customerName}${suffix}`,
+              type: "direct",
+              farmId: farm.id,
               phone: data.phone,
-              address: data.address || emptyPhoneCustomer.address,
+              address: data.address,
+            },
+          });
+        } else {
+          // 이미 매치된 고객이 있다면 주소를 최신 주소로 업데이트합니다.
+          customer = await prisma.customer.update({
+            where: { id: customer.id },
+            data: {
+              address: data.address || customer.address,
+            },
+          });
+        }
+      } else {
+        // 입력된 전화번호가 없을 경우 기존 호환성을 위해 첫 번째 일치하는 고객 선택
+        customer = existingCustomers[0];
+        if (data.address) {
+          customer = await prisma.customer.update({
+            where: { id: customer.id },
+            data: {
+              address: data.address || customer.address,
             },
           });
         }
       }
-      
-      // 3. 만약 모든 기존 고객이 번호를 가지고 있고, 그 번호들이 입력 번호와 전부 다르면 새로운 동명이인 고객으로 생성합니다.
-      if (!customer) {
-        const suffix = data.phone ? `(${data.phone.slice(-4)})` : "";
-        customer = await prisma.customer.create({
-          data: {
-            name: data.customerName,
-            nickname: `${data.customerName}${suffix}`,
-            type: "direct",
-            farmId: farm.id,
-            phone: data.phone,
-            address: data.address,
-          },
-        });
-      } else {
-        // 이미 매치된 고객이 있다면 주소를 최신 주소로 업데이트합니다.
-        customer = await prisma.customer.update({
-          where: { id: customer.id },
-          data: {
-            address: data.address || customer.address,
-          },
-        });
-      }
     } else {
-      // 입력된 전화번호가 없을 경우 기존 호환성을 위해 첫 번째 일치하는 고객 선택
-      customer = existingCustomers[0];
-      if (data.address) {
-        customer = await prisma.customer.update({
-          where: { id: customer.id },
-          data: {
-            address: data.address || customer.address,
-          },
-        });
-      }
+      // 일치하는 기존 고객이 전혀 없으면 완전 신규 고객 생성
+      customer = await prisma.customer.create({
+        data: {
+          name: data.customerName,
+          type: "direct",
+          farmId: farm.id,
+          phone: data.phone,
+          address: data.address,
+        },
+      });
     }
-  } else {
-    // 일치하는 기존 고객이 전혀 없으면 완전 신규 고객 생성
-    customer = await prisma.customer.create({
-      data: {
-        name: data.customerName,
-        type: "direct",
-        farmId: farm.id,
-        phone: data.phone,
-        address: data.address,
-      },
-    });
   }
 
-  // 발송 대기(pending) 상태로 출하 기록 생성
+  // 발송 대기(pending) 상태로 출하 기록 생성 (수령인 정보 함께 저장)
   const shipment = await prisma.shipment.create({
     data: {
       farmId: farm.id,
@@ -169,20 +193,23 @@ export async function createCustomerOrderRecord(data: CreateCustomerOrderDTO) {
       rawInput: data.rawInput,
       paymentStatus: "unpaid",
       status: "pending", 
+      recipientName: isGift ? data.recipientName : (data.customerName || customer.name),
+      recipientPhone: data.phone || null,
+      recipientAddress: data.address || null,
     },
     include: {
       customer: true,
     },
   });
 
-  // 택배사 이메일 자동 발송 처리
+  // 택배사 이메일 자동 발송 처리 (수령인 정보 기준으로 발송)
   let emailResult = null;
   if (farm.autoEmailCourier && farm.courierEmail) {
     try {
       emailResult = await sendOrderEmailToCourier({
-        customerName: customer.name,
-        phone: customer.phone,
-        address: customer.address,
+        customerName: shipment.recipientName || customer.name,
+        phone: shipment.recipientPhone || customer.phone,
+        address: shipment.recipientAddress || customer.address,
         variety: shipment.variety,
         quantity: shipment.quantity,
         unit: data.unit,

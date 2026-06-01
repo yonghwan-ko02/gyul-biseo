@@ -55,7 +55,8 @@ export interface QueryUnpaidAction extends BaseAction {
 export interface CreateCustomerOrderAction extends BaseAction {
   action: "create_customer_order";
   data: {
-    customerName: string; // 고객명
+    customerName: string; // 고객명 (주문자/결제자)
+    recipientName?: string; // 받는 분 성함 (지인 선물 등)
     phone?: string; // 연락처
     address?: string; // 배송지 주소
     variety: string; // 품종

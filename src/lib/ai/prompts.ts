@@ -17,6 +17,7 @@ ${getDialectMapString()}
    - **[절대 엄금]** 발화에 거래처명이 아예 언급되지 않은 경우, 절대로 품종명(예: "극조생", "조생", "타이벡" 등), 수량/단위가 결합된 문구(예: "극조생 쉰콘테나", "조생 50박스"), 대화 노이즈나 시간부사(예: "오늘", "어제", "입금", "출하", "장부", "귤", "박스", "일꾼" 등)를 거래처명에 대입하는 것을 엄격히 금지합니다. 또한 예시 문맥에 등장하는 상호명을 상상하여 채워넣지(Hallucination) 마십시오.
    - **[임의 텍스트 채우기 절대 금지]** 필수가 채워지지 않았다고 해서 'customerName'에 "unknown", "미지정", "누락", "none", "알 수 없음" 등의 placeholder 텍스트를 기입하고 'create_shipment'나 'create_payment' 액션을 반환하는 행위를 엄격히 금지합니다. 거래 대상자명이 온전히 존재하지 않는다면 무조건 100% action은 "clarify"가 되어야 합니다.
    - **[실제 거래처 및 역할 분석]** "홍길동 삼촌이 소개해준 김영희 선과장"과 같이 여러 인물/회사명이 문장에 동시에 등장하는 경우, 소개인(홍길동)과 실제 인수 대상자(김영희 선과장)의 역할을 구분하여 실제 거래처인 '김영희 선과장'만을 'customerName'으로 추출해야 합니다.
+   - **[주문자와 수령인 분리 규칙 (지인 선물)]** "홍길동이가 지인 김철수(010-1234-5678, 서울시...)에게 조생 5박스 보내달래"와 같이 주문을 지시/결제하는 사람(홍길동)과 실제 선물을 받는 사람(김철수)이 명확히 다를 경우, 'customerName'은 실제 결제를 담당하는 주문자('홍길동')로 추출하고, 'recipientName'은 실제 택배를 받는 수령인('김철수')으로 추출하십시오. 만약 구분되지 않거나 본인이 직접 받는 일반 주문일 경우 'recipientName'은 customerName과 동일하게 기입하거나 null로 설정하십시오.
    - **[STT 훼손 및 약어형 거래처의 적극적 복원/허용]** 음성 인식(STT) 소음으로 인해 거래처가 "동 1 여 통 서 서 어"와 같이 쪼개지거나 "서기포농"과 같은 오타/약칭으로 언급되더라도, 문맥적으로 실제 상호("동일유통")나 약칭("서기포농")을 판별할 수 있다면, 절대 되묻지 말고 온전한 거래처명으로 변환하거나 약칭 그대로 사용하여 'create_shipment' 또는 'create_payment' 기록을 즉시 완료해야 합니다.
 2. **자기 수정(Self-Correction) 최신 기준**:
    - 발화 중 실수를 정정하는 경우(예: "칠백이 아니고 구백만원이네", "극조생 말고 조생으로"), 앞의 정보나 중간 수치는 완전히 파기하고 **가장 마지막에 수정 기재된 최종 진술 정보(최종 수정값)**만을 정확히 추출하십시오. (예: "구백만원"은 반드시 9000000이어야 하며, 8000000 등으로 평균내거나 왜곡해선 절대 안 됩니다).
@@ -35,7 +36,7 @@ ${getDialectMapString()}
 
 [JSON 스키마 (Action Type)]
 - "create_shipment": {"action":"create_shipment","data":{"customerName":string,"variety":string,"quantity":number,"unit":string,"pricePerUnit":number|null}}
-- "create_customer_order": {"action":"create_customer_order","data":{"customerName":string,"phone":string|null,"address":string|null,"variety":string,"quantity":number,"unit":string}}
+- "create_customer_order": {"action":"create_customer_order","data":{"customerName":string,"recipientName":string|null,"phone":string|null,"address":string|null,"variety":string,"quantity":number,"unit":string}}
 - "create_payment": {"action":"create_payment","data":{"customerName":string,"amount":number}}
 - "create_farm_log": {"action":"create_farm_log","data":{"workType":string,"workerCount":number|null,"details":string}}
 - "query_revenue": {"action":"query_revenue","data":{"period":"today"|"month"|"year"|"all"|null,"variety":string|null}}
@@ -54,6 +55,9 @@ ${getDialectMapString()}
 
 사용자: "오늘 아주망 넷이랑 아즈방 둘 데려와서 방제 오지게 해부렀져"
 응답: {"action": "create_farm_log", "data": {"workType": "방제", "workerCount": 6, "details": "아주망 넷, 아즈방 둘"}}
+
+사용자: "홍길동이가 친구 김철수(010-1111-2222, 서울시 강남구 테헤란로 12)한테 조생 귤 세 박스 보내달래는데"
+응답: {"action": "create_customer_order", "data": {"customerName": "홍길동", "recipientName": "김철수", "phone": "010-1111-2222", "address": "서울시 강남구 테헤란로 12", "variety": "조생 귤", "quantity": 3, "unit": "박스"}}
 
 사용자: "오늘 극조생 쉰콘테나 보냈거든? 장부에 올려놔" (거래처 부재)
 응답: {"action": "clarify", "data": {"reason": "거래처 이름 누락", "question": "어느 거래처로 극조생 50콘테나를 보내셨나요?"}}

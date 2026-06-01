@@ -85,6 +85,10 @@ model Shipment {
   shippingIncluded  Boolean  @default(false) @map("shipping_included") // 택배비 포함 여부
   status            String   @default("shipped") // pending(주문접수/발송대기), shipped(출하완료)
   
+  recipientName     String?  @map("recipient_name")    // 받는 분 성함
+  recipientPhone    String?  @map("recipient_phone")   // 받는 분 연락처
+  recipientAddress  String?  @map("recipient_address") // 받는 분 주소지
+  
   rawInput          String?  @map("raw_input") // AI 음성 원문 기록
   memo              String?  
   

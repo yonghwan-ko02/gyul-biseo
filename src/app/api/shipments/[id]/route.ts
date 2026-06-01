@@ -26,6 +26,9 @@ export async function PATCH(
       customerName,
       phone,
       address,
+      recipientName,
+      recipientPhone,
+      recipientAddress,
     } = body;
 
     // 1. MVP용 농장 정보 가져오기
@@ -147,6 +150,9 @@ export async function PATCH(
         outstandingAmount: outstandingAmount !== undefined ? (outstandingAmount === null ? null : Number(outstandingAmount)) : shipment.outstandingAmount,
         paymentStatus: paymentStatus !== undefined ? paymentStatus : shipment.paymentStatus,
         status: status !== undefined ? status : shipment.status,
+        recipientName: recipientName !== undefined ? recipientName : shipment.recipientName,
+        recipientPhone: recipientPhone !== undefined ? recipientPhone : shipment.recipientPhone,
+        recipientAddress: recipientAddress !== undefined ? recipientAddress : shipment.recipientAddress,
       },
       include: {
         customer: true,

@@ -39,9 +39,9 @@ export async function POST(request: Request) {
       : "박스";
 
     const emailResult = await sendOrderEmailToCourier({
-      customerName: customer.name,
-      phone: customer.phone,
-      address: customer.address,
+      customerName: shipment.recipientName || customer.name,
+      phone: shipment.recipientPhone || customer.phone,
+      address: shipment.recipientAddress || customer.address,
       variety: shipment.variety,
       quantity: shipment.quantity,
       unit: unitStr,
