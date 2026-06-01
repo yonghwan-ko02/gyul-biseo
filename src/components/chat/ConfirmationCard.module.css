@@ -61,9 +61,17 @@
 }
 
 .row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-sm);
+}
+
+@media (min-width: 400px) {
+  .row {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: var(--space-sm);
+  }
 }
 
 .quantityGroup {
@@ -73,8 +81,8 @@
 }
 
 .qtyButton {
-  width: var(--touch-min);
-  height: var(--touch-min);
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -82,7 +90,7 @@
   background-color: var(--color-primary-bg);
   color: var(--color-primary);
   border: none;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: var(--font-weight-bold);
   cursor: pointer;
   transition: all 0.15s ease;
@@ -95,9 +103,20 @@
 
 .qtyInput {
   flex: 1;
+  padding: 6px 4px !important;
   text-align: center;
   font-weight: var(--font-weight-bold);
+  min-width: 36px;
+  -moz-appearance: textfield;
 }
+
+.qtyInput::-webkit-outer-spin-button,
+.qtyInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+
 
 .varietyChips {
   display: flex;

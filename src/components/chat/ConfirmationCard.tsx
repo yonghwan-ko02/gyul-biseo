@@ -141,7 +141,9 @@ export default function ConfirmationCard({ action, data }: Props) {
 
       if (res.ok && result.success) {
         setStatus("success");
+        window.dispatchEvent(new CustomEvent("shipment-registered"));
       } else {
+
         setStatus("error");
         setErrorMessage(result.error || "등록하는 중에 에러가 발생했습니다.");
       }

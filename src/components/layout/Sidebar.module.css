@@ -1,0 +1,204 @@
+/* 모바일/태블릿에서는 사이드바 숨김 */
+.sidebar {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    width: 260px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border-right: 1px solid rgba(255, 126, 0, 0.08);
+    padding: var(--space-lg) var(--space-md);
+    z-index: 200;
+    box-shadow: 4px 0 30px rgba(160, 140, 120, 0.04);
+  }
+
+  /* 로고 영역 */
+  .logoArea {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-xl);
+    padding: 0 var(--space-xs);
+  }
+
+  .logoIcon {
+    font-size: 2rem;
+    filter: drop-shadow(0 4px 8px rgba(255, 126, 0, 0.2));
+    animation: pulse 2.5s infinite;
+  }
+
+  .logoText {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .title {
+    font-size: var(--font-size-lg);
+    font-weight: 900;
+    color: var(--color-text);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+  }
+
+  .subtitle {
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    color: var(--color-primary);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* 프로필 박스 */
+  .profileBox {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    background: linear-gradient(135deg, rgba(255, 243, 229, 0.8), rgba(255, 255, 255, 0.9));
+    border: 1px solid rgba(255, 126, 0, 0.1);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-xl);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-full);
+    background: var(--color-primary-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-xl);
+    border: 2px solid #FFFFFF;
+    box-shadow: 0 4px 10px rgba(255, 126, 0, 0.15);
+  }
+
+  .profileInfo {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .profileName {
+    font-size: var(--font-size-sm);
+    font-weight: 800;
+    color: var(--color-text);
+  }
+
+  .profileRole {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--color-text-secondary);
+  }
+
+  /* 내비게이션 메뉴 */
+  .nav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    flex: 1;
+  }
+
+  .item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: all var(--transition-normal);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .item:hover {
+    color: var(--color-primary-dark);
+    background: rgba(255, 126, 0, 0.04);
+    transform: translateX(4px);
+  }
+
+  .icon {
+    font-size: 1.5rem;
+    transition: transform var(--transition-normal);
+  }
+
+  .item:hover .icon {
+    transform: scale(1.15);
+  }
+
+  .textContainer {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .label {
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .description {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-tertiary);
+    font-weight: 500;
+  }
+
+  /* 활성화 항목 */
+  .active {
+    color: var(--color-primary-dark);
+    background: rgba(255, 126, 0, 0.08) !important;
+    border: 1px solid rgba(255, 126, 0, 0.1);
+  }
+
+  .active .label {
+    font-weight: 800;
+  }
+
+  .active .description {
+    color: var(--color-primary-light);
+  }
+
+  .activeIndicator {
+    position: absolute;
+    right: 0;
+    top: 25%;
+    height: 50%;
+    width: 4px;
+    background: var(--color-primary);
+    border-radius: var(--radius-full) 0 0 var(--radius-full);
+    box-shadow: -2px 0 8px var(--color-primary-light);
+  }
+
+  /* 푸터 영역 */
+  .footer {
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--color-border-light);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .footerText {
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    color: var(--color-text-tertiary);
+  }
+
+  .footerSubText {
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--color-text-tertiary);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+}

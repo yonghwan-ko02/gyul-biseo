@@ -217,107 +217,116 @@ export default async function DashboardPage() {
   // ═══════════════════════════════════════════
   return (
     <div className={styles.container}>
-      {/* 1. 발송대기 주문 알림 */}
+      {/* 1. 발송대기 주문 알림은 전면 배치 */}
       <PendingOrderBanner count={pendingOrderCount} />
 
-      {/* 2. AI 인사이트 */}
-      <AiInsightWidget />
+      <div className={styles.dashboardGrid}>
+        {/* 좌측 메인 영역: AI 인사이트 및 시각 차트 분석 */}
+        <div className={styles.leftColumn}>
+          {/* 2. AI 인사이트 */}
+          <AiInsightWidget />
 
-      {/* 3. 빠른 액션 바 */}
-      <QuickActionBar pendingCount={pendingOrderCount} unpaidCount={unpaidCustomerCount} />
+          {/* 3. 차트 탭 (주간 출하 / 월별 매출) */}
+          <section className={styles.recent}>
+            <h2>출하 & 매출 추이</h2>
+            <Card padding="md" className={styles.recentCard}>
+              <DashboardChartTabs
+                weeklyData={weeklyChartData}
+                monthlyData={monthlyChartData}
+              />
+            </Card>
+          </section>
 
-      {/* 4. 요약 카드 (성장률 포함) */}
-      <section className={styles.summary}>
-        <Card variant="default" padding="lg" className={styles.recentCard}>
-          <CardHeader title="오늘 출하" icon="📦" />
-          <p className={`amount ${styles.bigNumber}`}>{todayBoxCount} 박스</p>
-          <GrowthIndicator current={monthBoxes} previous={prevMonthBoxes} />
-        </Card>
+          {/* 4. 품종별 매출 분석 */}
+          <section className={styles.recent}>
+            <h2>품종별 매출 분석</h2>
+            <Card padding="md" className={styles.recentCard}>
+              <DashboardVarietyChart data={varietyData} />
+            </Card>
+          </section>
+        </div>
 
-        <Card variant="danger" padding="lg" className={styles.recentCard}>
-          <CardHeader title="미수금 합계" icon="💸" />
-          <p className={`amount amount-negative ${styles.bigNumber}`}>
-            ₩{totalUnpaid.toLocaleString()}
-          </p>
-          <GrowthIndicator current={totalUnpaid} previous={prevMonthUnpaid} />
-        </Card>
+        {/* 우측 사이드바 영역: 요약 카드, 미수금, 로그 및 최근 거래 리스트 */}
+        <div className={styles.rightColumn}>
+          {/* 5. 빠른 액션 바 */}
+          <QuickActionBar pendingCount={pendingOrderCount} unpaidCount={unpaidCustomerCount} />
 
-        <Card variant="success" padding="lg" className={styles.recentCard}>
-          <CardHeader title="이번 달 매출 (예상)" icon="💰" />
-          <p className={`amount ${styles.bigNumber}`}>
-            ₩{monthRevenue.toLocaleString()}
-          </p>
-          <GrowthIndicator current={monthRevenue} previous={prevMonthRevenue} />
-        </Card>
-      </section>
+          {/* 6. 요약 카드 (성장률 포함) */}
+          <section className={styles.summaryGrid}>
+            <Card variant="default" padding="lg" className={styles.recentCard}>
+              <CardHeader title="오늘 출하" icon="📦" />
+              <p className={`amount ${styles.bigNumber}`}>{todayBoxCount} 박스</p>
+              <GrowthIndicator current={monthBoxes} previous={prevMonthBoxes} />
+            </Card>
 
-      {/* 5. 차트 탭 (주간 출하 / 월별 매출) */}
-      <section className={styles.recent}>
-        <h2>출하 & 매출 추이</h2>
-        <Card padding="md" className={styles.recentCard}>
-          <DashboardChartTabs
-            weeklyData={weeklyChartData}
-            monthlyData={monthlyChartData}
-          />
-        </Card>
-      </section>
+            <Card variant="danger" padding="lg" className={styles.recentCard}>
+              <CardHeader title="미수금 합계" icon="💸" />
+              <p className={`amount amount-negative ${styles.bigNumber}`}>
+                ₩{totalUnpaid.toLocaleString()}
+              </p>
+              <GrowthIndicator current={totalUnpaid} previous={prevMonthUnpaid} />
+            </Card>
 
-      {/* 6. 품종별 매출 분석 */}
-      <section className={styles.recent}>
-        <h2>품종별 매출 분석</h2>
-        <Card padding="md" className={styles.recentCard}>
-          <DashboardVarietyChart data={varietyData} />
-        </Card>
-      </section>
+            <Card variant="success" padding="lg" className={styles.recentCard}>
+              <CardHeader title="이번 달 매출 (예상)" icon="💰" />
+              <p className={`amount ${styles.bigNumber}`}>
+                ₩{monthRevenue.toLocaleString()}
+              </p>
+              <GrowthIndicator current={monthRevenue} previous={prevMonthRevenue} />
+            </Card>
+          </section>
 
-      {/* 7. 거래처 TOP 5 미수금 랭킹 */}
-      <section className={styles.recent}>
-        <h2>거래처 미수금 TOP 5</h2>
-        <Card padding="md" className={styles.recentCard}>
-          <TopUnpaidRanking data={topUnpaidCustomers} totalUnpaid={totalUnpaid} />
-        </Card>
-      </section>
+          {/* 7. 거래처 TOP 5 미수금 랭킹 */}
+          <section className={styles.recent}>
+            <h2>거래처 미수금 TOP 5</h2>
+            <Card padding="md" className={styles.recentCard}>
+              <TopUnpaidRanking data={topUnpaidCustomers} totalUnpaid={totalUnpaid} />
+            </Card>
+          </section>
 
-      {/* 8. 영농일지 최근 기록 */}
-      <section className={styles.recent}>
-        <h2>영농일지</h2>
-        <Card padding="md" className={styles.recentCard}>
-          <FarmLogWidget logs={farmLogEntries} daysSinceLastLog={daysSinceLastLog} />
-        </Card>
-      </section>
+          {/* 8. 영농일지 최근 기록 */}
+          <section className={styles.recent}>
+            <h2>영농일지</h2>
+            <Card padding="md" className={styles.recentCard}>
+              <FarmLogWidget logs={farmLogEntries} daysSinceLastLog={daysSinceLastLog} />
+            </Card>
+          </section>
 
-      {/* 9. 최근 거래 내역 */}
-      <section className={styles.recent}>
-        <h2>최근 거래 내역</h2>
-        {recentTransactions.length === 0 ? (
-          <p className="text-secondary">아직 기록된 거래가 없습니다.</p>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-md)" }}>
-            {recentTransactions.map((tx) => (
-              <Card key={tx.id} padding="md" className={styles.recentCard}>
-                <div className={styles.txItem}>
-                  <div className={styles.txDetails}>
-                    <h3 className={styles.txTitle}>
-                      {tx.customer.name} 
-                      {tx.status === "pending" && (
-                        <span className={`${styles.txBadge} ${styles.txBadgePending}`}>
-                          주문접수
-                        </span>
-                      )}
-                    </h3>
-                    <p className="text-secondary text-sm">
-                      {format(new Date(tx.createdAt), "MM/dd HH:mm")} · {tx.variety} {tx.quantity}{tx.memo?.replace('단위: ', '') || '박스'}
-                    </p>
-                  </div>
-                  <div className={`amount ${tx.paymentStatus === 'paid' ? 'amount-positive' : 'amount-negative'} ${styles.txStatus}`}>
-                    {tx.paymentStatus === 'paid' ? '결제완료' : '미수금'}
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        )}
-      </section>
+          {/* 9. 최근 거래 내역 */}
+          <section className={styles.recent}>
+            <h2>최근 거래 내역</h2>
+            {recentTransactions.length === 0 ? (
+              <p className="text-secondary">아직 기록된 거래가 없습니다.</p>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-md)" }}>
+                {recentTransactions.map((tx) => (
+                  <Card key={tx.id} padding="md" className={styles.recentCard}>
+                    <div className={styles.txItem}>
+                      <div className={styles.txDetails}>
+                        <h3 className={styles.txTitle}>
+                          {tx.customer.name} 
+                          {tx.status === "pending" && (
+                            <span className={`${styles.txBadge} ${styles.txBadgePending}`}>
+                              주문접수
+                            </span>
+                          )}
+                        </h3>
+                        <p className="text-secondary text-sm">
+                          {format(new Date(tx.createdAt), "MM/dd HH:mm")} · {tx.variety} {tx.quantity}{tx.memo?.replace('단위: ', '') || '박스'}
+                        </p>
+                      </div>
+                      <div className={`amount ${tx.paymentStatus === 'paid' ? 'amount-positive' : 'amount-negative'} ${styles.txStatus}`}>
+                        {tx.paymentStatus === 'paid' ? '결제완료' : '미수금'}
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+      </div>
     </div>
   );
 }
+

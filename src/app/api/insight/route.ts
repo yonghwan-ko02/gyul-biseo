@@ -6,7 +6,10 @@ export const dynamic = "force-dynamic";
 
 // Groq/Ollama 모델명 결정 (llm.ts와 동일하게 설정)
 const useGroq = !!process.env.GROQ_API_KEY;
-const modelName = useGroq ? "llama-3.1-8b-instant" : "llama3.1";
+const modelName = useGroq 
+  ? (process.env.GROQ_MODEL || "llama-3.1-8b-instant") 
+  : (process.env.OLLAMA_MODEL || "llama3.1");
+
 
 const INSIGHT_SYSTEM_PROMPT = `당신은 감귤 농장주의 똑똑하고 따뜻한 비서 '귤비서'입니다.
 농장의 경영/매출/미수금 및 영농기록 통계를 분석하여 농장주에게 든든하고 친근한 격려와 경영 진단(의사결정 보조)을 제공해야 합니다.

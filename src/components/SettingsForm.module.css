@@ -1,0 +1,153 @@
+.formGroupRow {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (min-width: 600px) {
+  .formGroupRow {
+    flex-direction: row;
+  }
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.input {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  font-size: 16px;
+  width: 100%;
+  color: var(--color-text);
+  background-color: var(--color-surface);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(255, 126, 0, 0.15);
+  outline: none;
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: 700;
+}
+
+.title {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--space-md);
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-lg);
+  margin-top: var(--space-md);
+  margin-bottom: 4px;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.subtitle {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-md);
+  line-height: var(--line-height-relaxed);
+}
+
+.copyArea {
+  background-color: var(--color-bg);
+  padding: 12px;
+  border-radius: 8px;
+  word-break: break-all;
+  font-size: 14px;
+  margin-bottom: 12px;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-family: monospace;
+}
+
+.button {
+  background-color: var(--color-primary);
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+  font-weight: bold;
+  width: 100%;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.button:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.button:active {
+  transform: scale(0.98);
+}
+
+.saveButton {
+  margin-top: 16px;
+  background-color: var(--color-text);
+  color: white;
+  padding: 16px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+  font-weight: bold;
+  width: 100%;
+  cursor: pointer;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.saveButton:hover {
+  opacity: 0.9;
+}
+
+.saveButton:active {
+  transform: scale(0.98);
+}
+
+.checkboxContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg);
+}
+
+.checkboxTextContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.checkboxLabel {
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--color-text);
+}
+
+.checkboxSubLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.checkbox {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+}

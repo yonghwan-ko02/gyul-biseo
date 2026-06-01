@@ -5,7 +5,16 @@
   padding-bottom: var(--space-2xl);
   min-height: calc(100vh - 120px);
   animation: fadeIn var(--transition-slow);
+  width: 100%;
 }
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+}
+
 
 .header {
   display: flex;

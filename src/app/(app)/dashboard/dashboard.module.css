@@ -6,6 +6,24 @@
   animation: fadeIn var(--transition-slow);
 }
 
+.dashboardGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.leftColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.rightColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
 .summary {
   display: grid;
   grid-template-columns: 1fr;
@@ -16,6 +34,19 @@
   .summary {
     grid-template-columns: repeat(3, 1fr);
     gap: var(--space-lg);
+  }
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-md);
+}
+
+@media (min-width: 640px) {
+  .summaryGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-md);
   }
 }
 
@@ -104,3 +135,22 @@
   font-size: var(--font-size-base);
 }
 
+/* 데스크톱 전용 2컬럼 다단 그리드 설정 */
+@media (min-width: 1024px) {
+  .container {
+    padding: 0;
+    gap: var(--space-xl);
+  }
+
+  .dashboardGrid {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: var(--space-xl);
+    align-items: start;
+  }
+
+  .summaryGrid {
+    grid-template-columns: 1fr; /* 사이드 배치 시 1열 스택이 훨씬 정돈되어 보임 */
+    gap: var(--space-md);
+  }
+}

@@ -38,3 +38,10 @@
   width: var(--font-size-xl);
   flex-shrink: 0;
 }
+
+@media (min-width: 1024px) {
+  .header {
+    display: none !important;
+  }
+}
+
