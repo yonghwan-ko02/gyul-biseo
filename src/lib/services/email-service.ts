@@ -155,7 +155,8 @@ ${farmName} 농장의 주문 배송을 의뢰합니다.
   // ─── 모의 발송 모드 (Mock Mode) ───
   // 이메일 상세 내역을 scratch 폴더 내 텍스트 로그 파일에 저장
   try {
-    const scratchDir = path.join(process.cwd(), "scratch");
+    const isVercel = !!process.env.VERCEL;
+    const scratchDir = isVercel ? "/tmp" : path.join(process.cwd(), "scratch");
     if (!fs.existsSync(scratchDir)) {
       fs.mkdirSync(scratchDir, { recursive: true });
     }
@@ -173,6 +174,12 @@ ${farmName} 농장의 주문 배송을 의뢰합니다.
     };
   } catch (err) {
     console.error("[Email Service] 모의 발송 로그 저장 에러:", err);
-    return { success: false, mode: "mock" };
+    console.info("[Mock Email Service] 파일 저장 실패로 인해 콘솔 로그 출력 후 성공 처리합니다 (Vercel 배포 호환).");
+    console.info(`[Mock Email Details]\n수신: ${courierName} (${courierEmail})\n제목: ${subject}\n본문:\n${textBody}`);
+    return { 
+      success: true, 
+      mode: "mock", 
+      logPath: "Vercel 서버리스 로그 (Console)" 
+    };
   }
 }
