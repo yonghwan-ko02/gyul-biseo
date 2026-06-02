@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import nodemailer from "nodemailer";
 
 interface EmailOrderData {
   customerName: string;
@@ -125,8 +126,7 @@ ${farmName} 농장의 주문 배송을 의뢰합니다.
 
   if (smtpHost && smtpPort && smtpUser && smtpPass) {
     try {
-      // Nodemailer 로드 및 발송 시도
-      const nodemailer = require("nodemailer");
+      // Nodemailer 발송 시도
       const transporter = nodemailer.createTransport({
         host: smtpHost,
         port: parseInt(smtpPort, 10),

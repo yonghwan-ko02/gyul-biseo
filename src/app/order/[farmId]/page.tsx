@@ -1,10 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardHeader } from "@/components/ui/Card";
+import { useState, use } from "react";
+import { Card } from "@/components/ui/Card";
 import styles from "./order.module.css";
 
-export default function B2COrderPage({ params }: { params: { farmId: string } }) {
+interface PageProps {
+  params: Promise<{ farmId: string }>;
+}
+
+export default function B2COrderPage({ params }: PageProps) {
+  const { farmId } = use(params);
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -28,7 +33,7 @@ export default function B2COrderPage({ params }: { params: { farmId: string } })
       const res = await fetch(`/api/orders`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, farmId: params.farmId }),
+        body: JSON.stringify({ ...form, farmId }),
       });
 
       if (res.ok) {

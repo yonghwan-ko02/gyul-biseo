@@ -13,6 +13,7 @@ export async function POST(request: Request) {
 
     // Call service to create or update customer, and create pending shipment
     const order = await createCustomerOrderRecord({
+      farmId,
       customerName: name,
       phone,
       address,

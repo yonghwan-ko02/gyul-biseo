@@ -63,6 +63,7 @@ export async function createShipmentRecord(data: CreateShipmentDTO) {
 }
 
 export interface CreateCustomerOrderDTO {
+  farmId?: string;
   customerName: string;
   recipientName?: string;
   phone?: string;
@@ -82,7 +83,15 @@ function cleanPhone(phone: string | null | undefined): string {
  * AI 파싱 또는 B2C 전용 웹 폼에서 들어온 고객 주문(pending 상태)을 저장합니다.
  */
 export async function createCustomerOrderRecord(data: CreateCustomerOrderDTO) {
-  let farm = await prisma.farm.findFirst();
+  let farm = null;
+  if (data.farmId) {
+    farm = await prisma.farm.findUnique({
+      where: { id: data.farmId },
+    });
+  }
+  if (!farm) {
+    farm = await prisma.farm.findFirst();
+  }
   if (!farm) throw new Error("농장 정보가 없습니다.");
 
   const isGift = !!(data.recipientName && data.recipientName !== data.customerName);
