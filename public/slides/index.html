@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🍊 귤비서 — AI 감귤 농가 비서 프로젝트 소개</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ============================================
+       RESET & BASE
+       ============================================ */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      font-family: 'Noto Sans KR', 'Outfit', sans-serif;
+      background: #050505;
+      color: #ffffff;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+    }
+
+    /* ============================================
+       SLIDE ENGINE
+       ============================================ */
+    .slide-deck {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1),
+                  transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+      transform: scale(1.03);
+      overflow: hidden;
+    }
+
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      transform: scale(1);
+      z-index: 10;
+    }
+
+    /* Background image layer */
+    .slide-bg {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      z-index: 0;
+      filter: brightness(0.7) contrast(1.05) saturate(0.95); /* 배경 이미지를 화사하게 살려 풍경이 잘 보이도록 brightness 상향 조정 */
+    }
+
+    /* Tilt-shift blur overlay: top and bottom blur bands */
+    .slide-bg::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(to bottom,
+          rgba(0, 0, 0, 0.6) 0%,
+          rgba(0, 0, 0, 0.25) 25%,
+          rgba(0, 0, 0, 0.1) 38%,
+          rgba(0, 0, 0, 0.1) 62%,
+          rgba(0, 0, 0, 0.25) 75%,
+          rgba(0, 0, 0, 0.6) 100%
+        );
+      z-index: 1;
+    }
+
+    .slide-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      backdrop-filter: blur(0px);
+      -webkit-backdrop-filter: blur(0px);
+      mask-image: linear-gradient(to bottom,
+        black 0%, black 18%,
+        transparent 30%, transparent 70%,
+        black 82%, black 100%
+      );
+      -webkit-mask-image: linear-gradient(to bottom,
+        black 0%, black 18%,
+        transparent 30%, transparent 70%,
+        black 82%, black 100%
+      );
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 2;
+    }
+
+    /* Content container */
+    .slide-content {
+      position: relative;
+      z-index: 10;
+      width: min(90%, 1100px);
+      max-height: 88vh;
+      padding: 2.5rem 3rem;
+    }
+
+    /* ============================================
+       NAVIGATION
+       ============================================ */
+    .nav-bar {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(10, 10, 10, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 40px;
+      padding: 8px 18px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    }
+
+    .nav-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.25);
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .nav-dot.active {
+      background: #FF9100;
+      box-shadow: 0 0 12px rgba(255, 145, 0, 0.8);
+      width: 28px;
+      border-radius: 5px;
+    }
+
+    .nav-dot:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    .nav-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s ease;
+    }
+
+    .nav-btn:hover {
+      background: rgba(255, 145, 0, 0.35);
+      border-color: rgba(255, 145, 0, 0.6);
+      box-shadow: 0 0 8px rgba(255, 145, 0, 0.3);
+    }
+
+    .slide-counter {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7);
+      letter-spacing: 1px;
+      min-width: 45px;
+      text-align: center;
+    }
+
+    /* ============================================
+       TYPOGRAPHY
+       ============================================ */
+    .tag {
+      display: inline-block;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #FFA726;
+      background: rgba(255, 145, 0, 0.15);
+      border: 1px solid rgba(255, 145, 0, 0.4);
+      padding: 6px 14px;
+      border-radius: 20px;
+      margin-bottom: 1rem;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    h1.title-main {
+      font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+      font-size: clamp(2.8rem, 5.5vw, 4.5rem);
+      font-weight: 900;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 10px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    h2.slide-title {
+      font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+      font-size: clamp(1.6rem, 3.5vw, 2.6rem);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 0.8rem;
+      text-shadow: 0 3px 15px rgba(0, 0, 0, 0.8);
+    }
+
+    h3.slide-subtitle {
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: clamp(1rem, 1.8vw, 1.3rem);
+      font-weight: 500;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 1.5rem;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+    }
+
+    .accent { color: #FFA726; font-weight: 700; text-shadow: 0 0 10px rgba(255, 167, 38, 0.2); }
+    .accent-green { color: #66FF66; font-weight: 700; }
+    .accent-blue { color: #64B5F6; font-weight: 700; }
+    .accent-pink { color: #FF6EC7; font-weight: 700; }
+
+    /* ============================================
+       GLASS CARDS
+       ============================================ */
+    .glass-card {
+      background: rgba(10, 10, 10, 0.86); /* 카드 내부만 86%의 어두운 아크릴 질감으로 덮어 확실한 텍스트 대조비 확보 */
+      backdrop-filter: blur(32px); /* 극도로 깊은 백드롭 블러(32px)로 카드 영역의 복잡한 사진을 완전히 고밀도로 흐리게 처리 */
+      -webkit-backdrop-filter: blur(32px);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 16px;
+      padding: 1.5rem;
+      transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
+    }
+
+    .glass-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 145, 0, 0.45);
+      box-shadow: 0 12px 40px rgba(255, 145, 0, 0.15);
+    }
+
+    .glass-card-tight {
+      background: rgba(15, 15, 15, 0.88); /* 서브 카드 또한 높은 밀도로 처리 */
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 12px;
+      padding: 1rem 1.2rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    }
+
+    /* ============================================
+       GRIDS & LAYOUTS
+       ============================================ */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.8rem;
+    }
+
+    .split-layout {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 2.5rem;
+      align-items: center;
+    }
+
+    .split-layout.reverse {
+      grid-template-columns: 1fr 1.2fr;
+    }
+
+    /* ============================================
+       METRIC / STAT BOX
+       ============================================ */
+    .stat-box {
+      text-align: center;
+      padding: 1.2rem 0.8rem;
+    }
+
+    .stat-number {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 900;
+      color: #FF9100;
+      line-height: 1;
+      margin-bottom: 0.3rem;
+      text-shadow: 0 0 20px rgba(255, 145, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.5);
+    }
+
+    .stat-label {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.8);
+      line-height: 1.3;
+    }
+
+    /* ============================================
+       FLOW DIAGRAM ELEMENTS
+       ============================================ */
+    .flow-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .flow-node {
+      background: rgba(18, 18, 18, 0.88);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 12px;
+      padding: 0.8rem 1.2rem;
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+      min-width: 100px;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    }
+
+    .flow-node:hover {
+      border-color: rgba(255, 145, 0, 0.5);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(255, 145, 0, 0.2);
+    }
+
+    .flow-node .node-icon {
+      font-size: 1.5rem;
+      display: block;
+      margin-bottom: 0.3rem;
+    }
+
+    .flow-arrow {
+      font-size: 1.2rem;
+      color: rgba(255, 145, 0, 0.85);
+      flex-shrink: 0;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+    }
+
+    /* ============================================
+       COMPARISON TABLE
+       ============================================ */
+    .compare-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: rgba(5, 5, 5, 0.45);
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .compare-table th {
+      background: rgba(255, 145, 0, 0.18);
+      padding: 0.8rem 1rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-align: left;
+      letter-spacing: 0.5px;
+      color: #FFA726;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    .compare-table td {
+      padding: 0.8rem 1rem;
+      font-size: 0.85rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      color: #f0f0f0;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    }
+
+    .compare-table tr:last-child td { border-bottom: none; }
+
+    .compare-table tr:hover td {
+      background: rgba(255, 145, 0, 0.08);
+    }
+
+    /* ============================================
+       TAGS / BADGES
+       ============================================ */
+    .tech-badge {
+      display: inline-block;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 8px;
+      margin: 3px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(15, 15, 15, 0.8);
+      transition: all 0.25s ease;
+      text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+    }
+
+    .tech-badge:hover {
+      border-color: rgba(255, 145, 0, 0.5);
+      background: rgba(255, 145, 0, 0.15);
+    }
+
+    .tech-badge.primary {
+      background: rgba(255, 145, 0, 0.2);
+      border-color: rgba(255, 145, 0, 0.45);
+      color: #FFA726;
+    }
+
+    /* ============================================
+       LIST STYLES
+       ============================================ */
+    .bullet-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .bullet-list li {
+      position: relative;
+      padding-left: 1.4rem;
+      margin-bottom: 0.7rem;
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: #f5f5f5;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    .bullet-list li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.55rem;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #FF9100;
+      box-shadow: 0 0 6px rgba(255, 145, 0, 0.8);
+    }
+
+    /* ============================================
+       PROGRESS BAR
+       ============================================ */
+    .progress-bar {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 0.5rem;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #FF6D00, #FF9100, #FFA726);
+      transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* ============================================
+       TIMELINE
+       ============================================ */
+    .timeline {
+      position: relative;
+      padding-left: 2rem;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 0.4rem;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, #FF9100, rgba(255, 145, 0, 0.15));
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 1.2rem;
+      padding-left: 0.5rem;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -1.7rem;
+      top: 0.4rem;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #FF9100;
+      box-shadow: 0 0 10px rgba(255, 145, 0, 0.6);
+    }
+
+    .timeline-label {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #FFA726;
+      letter-spacing: 1px;
+      margin-bottom: 0.15rem;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    }
+
+    .timeline-text {
+      font-size: 0.85rem;
+      color: #eeeeee;
+      line-height: 1.5;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    }
+
+    /* ============================================
+       DECORATIVE ELEMENTS
+       ============================================ */
+    .deco-line {
+      width: 50px;
+      height: 3px;
+      background: linear-gradient(90deg, #FF9100, transparent);
+      border-radius: 2px;
+      margin-bottom: 1rem;
+    }
+
+    .emoji-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    /* ============================================
+       MINIATURE TOY LABEL
+       ============================================ */
+    .toy-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.6);
+      padding: 4px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      margin-bottom: 0.8rem;
+      background: rgba(255, 255, 255, 0.08);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    /* ============================================
+       ANIMATIONS
+       ============================================ */
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(25px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeSlideLeft {
+      from { opacity: 0; transform: translateX(30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .slide.active .anim-up {
+      animation: fadeSlideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .slide.active .anim-up-d1 { animation-delay: 0.15s; }
+    .slide.active .anim-up-d2 { animation-delay: 0.3s; }
+    .slide.active .anim-up-d3 { animation-delay: 0.45s; }
+    .slide.active .anim-up-d4 { animation-delay: 0.6s; }
+    .slide.active .anim-up-d5 { animation-delay: 0.75s; }
+
+    .slide.active .anim-left {
+      animation: fadeSlideLeft 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .slide.active .anim-left-d1 { animation-delay: 0.2s; }
+    .slide.active .anim-left-d2 { animation-delay: 0.35s; }
+
+    .slide.active .anim-scale {
+      animation: scaleIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    /* ============================================
+       RESPONSIVE
+       ============================================ */
+    @media (max-width: 768px) {
+      .slide-content { padding: 1.5rem 1.5rem; }
+      .grid-2, .split-layout, .split-layout.reverse { grid-template-columns: 1fr; gap: 1rem; }
+      .grid-3 { grid-template-columns: 1fr 1fr; }
+      .grid-4 { grid-template-columns: 1fr 1fr; }
+      .flow-row { flex-direction: column; }
+      .flow-arrow { transform: rotate(90deg); }
+    }
+
+    /* Keyboard hint */
+    .key-hint {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 100;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.6);
+      background: rgba(0, 0, 0, 0.6);
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      letter-spacing: 1px;
+      opacity: 1;
+      transition: opacity 2s ease 5s;
+    }
+
+    body.interacted .key-hint { opacity: 0; }
+  </style>
+</head>
+<body>
+
+<div class="key-hint">← → 또는 스페이스바로 이동</div>
+
+<!-- =============================================
+     SLIDE DECK
+     ============================================= -->
+<div class="slide-deck" id="slideDeck">
+
+  <!-- ─────────── SLIDE 1: TITLE ─────────── -->
+  <div class="slide active" data-slide="0">
+    <div class="slide-bg" style="background-image: url('images/tiltshift_farm_1780367106140.png');"></div>
+    <div class="slide-content" style="text-align: center;">
+      <div class="anim-up" style="margin-bottom: 1.5rem;">
+        <div class="toy-label" style="justify-content: center; margin: 0 auto 1rem;">🏷️ Portfolio Project 2026</div>
+      </div>
+      <div style="font-size: clamp(3.5rem, 7vw, 6rem); margin-bottom: 0.5rem;" class="anim-up anim-up-d1">🍊</div>
+      <h1 class="title-main anim-up anim-up-d2">
+        <span class="accent">귤</span>비서
+      </h1>
+      <h3 class="slide-subtitle anim-up anim-up-d3" style="max-width: 600px; margin: 0 auto 2rem;">
+        수확 현장의 장갑 낀 손가락으로도 운영하는<br/>
+        AI 감귤 농가 장부 비서
+      </h3>
+      <div class="anim-up anim-up-d4" style="display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap;">
+        <span class="tech-badge primary">Next.js 16</span>
+        <span class="tech-badge primary">React 19</span>
+        <span class="tech-badge primary">Llama 3.3 70B</span>
+        <span class="tech-badge primary">Prisma + Supabase</span>
+      </div>
+      <div class="anim-up anim-up-d5" style="margin-top: 2rem; font-size: 0.75rem; color: rgba(255,255,255,0.35);">
+        Talk & Track — 말만 하면 장부가 완성됩니다
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────── SLIDE 2: OVERVIEW ─────────── -->
+  <div class="slide" data-slide="1">
+    <div class="slide-bg" style="background-image: url('images/tiltshift_harvest_1780367301635.png');"></div>
+    <div class="slide-content">
+      <div class="split-layout">
+        <div>
+          <div class="tag anim-up">Overview</div>
+          <h2 class="slide-title anim-up anim-up-d1">프로젝트 개요</h2>
+          <div class="deco-line anim-up anim-up-d2"></div>
+          <h3 class="slide-subtitle anim-up anim-up-d2">
+            50~70대 감귤 농장주가 음성 메시지만으로
+            출하, 정산, 영농 이력을 기록하고 관리할 수 있는
+            AI 비서 웹 서비스
+          </h3>
+          <ul class="bullet-list anim-up anim-up-d3">
+            <li>개발 기간: 2026.05.27 ~ 현재</li>
+            <li>담당: 기획 / DB 설계 / 풀스택 개발 / AI 연동 / 배포</li>
+            <li>배포: Vercel 프로덕션 환경</li>
+            <li>AI 엔진: Groq Cloud + Ollama Fallback</li>
+          </ul>
+        </div>
+        <div class="anim-left anim-left-d1">
+          <div class="glass-card" style="text-align: center;">
+            <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">👨‍🌾</div>
+            <div style="font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem;">
+              "홍길동한테 노지 30박스 보냈어"
+            </div>
+            <div style="font-size: 0.78rem; color: rgba(255,255,255,0.5); margin-bottom: 0.8rem;">
+              ↓ AI 자동 파싱 & DB 저장
+            </div>
+            <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+              <span class="tech-badge">거래처: 홍길동</span>
+              <span class="tech-badge">품종: 노지감귤</span>
+              <span class="tech-badge">수량: 30박스</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────── SLIDE 3: PROBLEM ─────────── -->
+  <div class="slide" data-slide="2">
+    <div class="slide-bg" style="background-image: url('images/tiltshift_village_1780367119448.png');"></div>
+    <div class="slide-content">
+      <div class="tag anim-up">Problem</div>
+      <h2 class="slide-title anim-up anim-up-d1">해결하고자 한 <span class="accent">문제</span></h2>
+      <div class="deco-line anim-up anim-up-d1"></div>
+      <div class="grid-3 anim-up anim-up-d2" style="margin-top: 1rem;">
+        <div class="glass-card" style="text-align: center;">
+          <span class="emoji-icon">📋</span>
+          <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.4rem;">수기 장부의 한계</div>
+          <div style="font-size: 0.78rem; color: rgba(255,255,255,0.6); line-height: 1.5;">
+            종이 장부의 분실, 오기,<br/>정산 누락으로 인한<br/>매출 손실 발생
+          </div>
+        </div>
+        <div class="glass-card" style="text-align: center;">
+          <span class="emoji-icon">🧤</span>
+          <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.4rem;">조작의 어려움</div>
+          <div style="font-size: 0.78rem; color: rgba(255,255,255,0.6); line-height: 1.5;">
+            야외 작업 중 장갑을 낀 채<br/>작은 글씨, 복잡한 UI의<br/>기존 앱 조작 불가
+          </div>
+        </div>
+        <div class="glass-card" style="text-align: center;">
+          <span class="emoji-icon">🔄</span>
+          <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.4rem;">이중 작업</div>
+          <div style="font-size: 0.78rem; color: rgba(255,255,255,0.6); line-height: 1.5;">
+            카톡 주문 → 메모 → 장부 기입<br/>반복적인 수작업에<br/>시간과 인력 낭비
+          </div>
+        </div>
+      </div>
+      <div class="glass-card-tight anim-up anim-up-d3" style="margin-top: 1.2rem; text-align: center;">
+        <span style="font-size: 0.85rem; color: rgba(255,255,255,0.7);">
+          💡 핵심 인사이트: <span class="accent" style="font-weight: 700;">음성과 대화</span>만으로 모든 장부 업무를 해결할 수 있다면?
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────── SLIDE 4: ARCHITECTURE ─────────── -->
+  <div class="slide" data-slide="3">
+    <div class="slide-bg" style="background-image: url('images/tiltshift_tech_1780367133747.png');"></div>
+    <div class="slide-content">
+      <div class="tag anim-up">Architecture</div>
+      <h2 class="slide-title anim-up anim-up-d1">시스템 <span class="accent">아키텍처</span></h2>
+      <div class="deco-line anim-up anim-up-d1"></div>
+      <div class="flow-row anim-up anim-up-d2" style="margin: 1.5rem 0;">
+        <div class="flow-node">
+          <span class="node-icon">🎙️</span>
+          <div>음성 / 텍스트</div>
+          <div style="font-size: 0.65rem; color: rgba(255,255,255,0.4); margin-top: 0.2rem;">Web Speech API</div>
+        </div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node">
+          <span class="node-icon">🧹</span>
+          <div>전처리</div>
+          <div style="font-size: 0.65rem; color: rgba(255,255,255,0.4); margin-top: 0.2rem;">STT 노이즈 제거</div>
+        </div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node" style="border-color: rgba(255, 145, 0, 0.35);">
+          <span class="node-icon">🤖</span>
+          <div style="color: #FFB74D; font-weight: 700;">LLM 파싱</div>
+          <div style="font-size: 0.65rem; color: rgba(255,255,255,0.4); margin-top: 0.2rem;">Groq / Ollama</div>
+        </div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node">
+          <span class="node-icon">✅</span>
+          <div>컨펌 카드</div>
+          <div style="font-size: 0.65rem; color: rgba(255,255,255,0.4); margin-top: 0.2rem;">사용자 교정</div>
+        </div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-node">
+          <span class="node-icon">💾</span>
+          <div>DB 저장</div>
+          <div style="font-size: 0.65rem; color: rgba(255,255,255,0.4); margin-top: 0.2rem;">Prisma + Supabase</div>
+        </div>
+      </div>
+      <div class="grid-2 anim-up anim-up-d3">
+        <div class="glass-card-tight">
+          <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem;">🛡️ 안전 가드 시스템</div>
+          <ul class="bullet-list" style="font-size: 0.78rem;">
+            <li>STT 자릿수 공백 찢김 전처리</li>
+            <li>한글 수사 → 아라비아 숫자 변환</li>
+            <li>플레이스홀더 감지 & 차단</li>
+            <li>DB 거래처 사전 매칭 힌트 주입</li>
+          </ul>
+        </div>
+        <div class="glass-card-tight">
+          <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 0.4rem;">📊 데이터 모델 (6개 테이블)</div>
+          <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+            <span class="tech-badge">Farm</span>
+            <span class="tech-badge">Customer</span>
+            <span class="tech-badge">Shipment</span>
+            <span class="tech-badge">Payment</span>
+            <span class="tech-badge">FarmLog</span>
+            <span class="tech-badge">Worker</span>
+          </div>
+          <div style="font-size: 0.72rem; color: rgba(255,255,255,0.45); margin-top: 0.5rem;">
+            Soft Delete · 수령인 분리 · FIFO 정산
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────── SLIDE 5: TECH STACK ─────────── -->
+  <div class="slide" data-slide="4">
+    <div class="slide-bg" style="background-image: url('images/tiltshift_office_1780367274300.png');"></div>
+    <div class="slide-content">
+      <div class="tag anim-up">Tech Stack</div>
+      <h2 class="slide-title anim-up anim-up-d1">기술 <span class="accent">스택</span></h2>
+      <div class="deco-line anim-up anim-up-d1"></div>
+      <div class="grid-2 anim-up anim-up-d2" style="margin-top: 1rem;">
+        <div class="glass-card">
+          <div style="font-weight: 700; margin-bottom: 0.8rem;">⚡ 프론트엔드</div>
+          <table class="compare-table">
+            <tr><td style="color: #FFB74D; font-weight: 600;">프레임워크</td><td>Next.js 16 (App Router)</td></tr>
+            <tr><td style="color: #FFB74D; font-weight: 600;">UI 라이브러리</td><td>React 19</td></tr>
+            <tr><td style="color: #FFB74D; font-weight: 600;">언어</td><td>TypeScript</td></tr>
+            <tr><td style="color: #FFB74D; font-weight: 600;">스타일</td><td>Vanilla CSS Modules</td></tr>
+            <tr><td style="color: #FFB74D; font-weight: 600;">차트</td><td>Recharts</td></tr>
+            <tr><td style="color: #FFB74D; font-weight: 600;">음성 인식</td><td>Web Speech API</td></tr>
+          </table>
+        </div>
+        <div class="glass-card">
+          <div style="font-weight: 700; margin-bottom: 0.8rem;">🗄️ 백엔드 & 인프라</div>
+          <table class="compare-table">
+            <tr><td style="color: #64B5F6; font-weight: 600;">데이터베이스</td><td>Supabase PostgreSQL</td></tr>
+            <tr><td style="color: #64B5F6; font-weight: 600;">ORM</td><td>Prisma 5.22</td></tr>
+            <tr><td style="color: #64B5F6; font-weight: 600;">AI (주력)</td><td>Groq Cloud · Llama 3.3 70B</td></tr>
+            <tr><td style="color: #64B5F6; font-weight: 600;">AI (폴백)</td><td>Ollama · Llama 3.1 8B</td></tr>
+            <tr><td style="color: #64B5F6; font-weight: 600;">메일</td><td>Nodemailer</td></tr>
+            <tr><td style="color: #64B5F6; font-weight: 600;">배포</td><td>Vercel</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────── SLIDE 6: AI PIPELINE ─────────── -->
+  <div class="slide" data-slide="5">
+    <div class="slide-bg" style="background-image: url('images/tiltshift_network_1780367357185.png');"></div>
+    <div class="slide-content">
+      <div class="tag anim-up">AI Pipeline</div>
+      <h2 class="slide-title anim-up anim-up-d1">AI <span class="accent">액션 파싱</span> 엔진</h2>
+      <div class="deco-line anim-up anim-up-d1"></div>
+      <h3 class="slide-subtitle anim-up anim-up-d2" style="font-size: 0.9rem;">
+        JSON 모드 강제 + 구조화 프롬프트로 자연어를 정형 데이터로 변환
+      </h3>
+      <div class="grid-3 anim-up anim-up-d3" style="margin-bottom: 1rem;">
+        <div class="glass-card-tight" style="text-align: center;">
+          <div style="font-size: 1.6rem; margin-bottom: 0.3rem;">📦</div>
+          <div style="font-weight: 700; font-size: 0.82rem; margin-bottom: 0.2rem;">create_shipment</div>
+          <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5);">출하 등록</div>
+        </div>
+        <div class="glass-card-tight" style="text-align: center;">
+          <div style="font-size: 1.6rem; margin-bottom: 0.3rem;">💰</div>
+          <div style="font-weight: 700; font-size: 0.82rem; margin-bottom: 0.2rem;">create_payment</div>
+          <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5);">입금 기록</div>
+        </div>
+        <div class="glass-card-tight" style="text-align: center;">
+          <div style="font-size: 1.6rem; margin-bottom: 0.3rem;">🛒</div>
+          <div style="font-weight: 700; font-size: 0.82rem; margin-bottom: 0.2rem;">create_customer_order</div>
+          <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5);">B2C 주문 접수</div>
+        </div>
+        <div class="glass-card-tight" style="text-align: center;">
+          <div style="font-size: 1.6rem; margin-bottom: 0.3rem;">🌱</div>
+          <div style="font-weight: 700; font-size: 0.82rem; margin-bottom: 0.2rem;">create_farm_log</div>
+          <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5);">영농일지</div>
+        </div>
+        <div class="glass-card-tight" style="text-align: center;">
+          <div style="font-size: 1.6rem; margin-bottom: 0.3rem;">📊</div>
+          <div style="font-weight: 700; font-size: 0.82rem; margin-bottom: 0.2rem;">query_revenue</div>
+          <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5);">매출 조회</div>
+        </div>
+        <div class="glass-card-tight" style="text-align: center;">
+          <div style="font-size: 1.6rem; margin-bottom: 0.3rem;">⚠️</div>
+          <div style="font-weight: 700; font-size: 0.82rem; margin-bottom: 0.2rem;">query_unpaid</div>
+          <div style="font-size: 0.7rem; color: rgba(255,255,255,0.5);">미수금 조회</div>
+        </div>
+      </div>
+      <div class="glass-card-tight anim-up anim-up-d4" style="text-align: center;">
+        <span style="font-size: 0.82rem;">
+          🔑 핵심: 프롬프트를 <span class="accent" style="font-weight: 700;">5.5k → 1.5k 토큰</span>으로 70% 압축하여
+          무료 티어에서 <span class="accent" style="font-weight: 700;">70B</span> 모델 사용 가능
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────── SLIDE 7: UX DESIGN ─────────── -->
+  <div class="slide" data-slide="6">
+    <div class="slide-bg" style="background-image: url('images/tiltshift_garden_1780367326391.png');"></div>
+    <div class="slide-content">
+      <div class="tag anim-up">UX Design</div>
+      <h2 class="slide-title anim-up anim-up-d1">시니어 <span class="accent">맞춤</span> UX 전략</h2>
+      <div class="deco-line anim-up anim-up-d1"></div>
+      <div class="split-layout anim-up anim-up-d2">
+        <div>
+          <div class="glass-card" style="margin-bottom: 1rem;">
+            <div style="font-weight: 700; margin-bottom: 0.5rem;">👁️ 시각적 접근성</div>
+            <ul class="bullet-list">
+              <li>최소 14px 전역 폰트 (노안 대응)</li>
+              <li>WCAG AA 등급 색상 대비</li>
+              <li>미수금: 적색 / 완납: 녹색 고대비 구분</li>
+              <li>고대비 모드 지원 (3px 굵은 테두리)</li>
+            </ul>
+          </div>
+          <div class="glass-card">
+            <div style="font-weight: 700; margin-bottom: 0.5rem;">👆 터치 접근성</div>
+            <ul class="bullet-list">
+              <li>52px 이상 대형 버튼 (오터치 방지)</li>
+              <li>카드형 세로 스크롤 리스트</li>
+              <li>수량 -, + 큰 터치 버튼 탑재</li>
+              <li>장갑 착용 상태에서 원터치 조작</li>
+            </ul>
+          </div>
+        </div>
+        <div>
+          <div class="glass-card" style="margin-bottom: 1rem;">
+            <div style="font-weight: 700; margin-bottom: 0.5rem;">💬 대화형 인터페이스</div>
+            <ul class="bullet-list">
+              <li>음성 인식 기반 자연어 입력</li>
+              <li>양방향 컨펌 카드 (데이터 교정)</li>
+              <li>유사 고객 자동 추천 칩</li>
+              <li>표준어 친근한 응답 (~해요체)</li>
+            </ul>
+          </div>
+          <div class="glass-card">
+            <div style="font-weight: 700; margin-bottom: 0.5rem;">💎 프리미엄 디자인</div>
+            <ul class="bullet-list">
+              <li>글래스모피즘 기반 UI</li>
+              <li>감귤 테마 웜톤 디자인 시스템</li>
+              <li>부드러운 마이크로 애니메이션</li>
+              <li>PC / 모바일 2way 반응형</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────── SLIDE 8: CORE FEATURES ─────────── -->
+  <div class="slide" data-slide="7">
+    <div class="slide-bg" style="background-image: url('images/tiltshift_phone_1780367173533.png');"></div>
+    <div class="slide-content">
+      <div class="tag anim-up">Core Features</div>
+      <h2 class="slide-title anim-up anim-up-d1">핵심 <span class="accent">기능</span></h2>
+      <div class="deco-line anim-up anim-up-d1"></div>
+      <div class="grid-2 anim-up anim-up-d2" style="margin-top: 0.8rem;">
+        <div class="glass-card">
+          <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">💬</div>
+          <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.3rem;">AI 채팅 장부</div>
+          <div style="font-size: 0.78rem; color: rgba(255,255,255,0.65); line-height: 1.5;">
+            음성/텍스트로 출하·입금·영농 기록을 자연어 입력하면 AI가 자동 파싱하여 DB에 등록
+          </div>
+        </div>
+        <div class="glass-card">
+          <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">📋</div>
+          <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.3rem;">캘린더 장부</div>
+          <div style="font-size: 0.78rem; color: rgba(255,255,255,0.65); line-height: 1.5;">
+            CSS Grid 기반 월간 달력 뷰. 날짜별 출하 상태를 색상 도트로 즉시 확인, 기간 필터 연동
+          </div>
+        </div>
+        <div class="glass-card">
+          <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">📊</div>
+          <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.3rem;">7대 분석 대시보드</div>
+          <div style="font-size: 0.78rem; color: rgba(255,255,255,0.65); line-height: 1.5;">
+            성장률 인디케이터, 품종 도넛차트, 미수금 TOP5, 월별 추이, 영농일지 위젯 등 종합 경영 현황판
+          </div>
+        </div>
+        <div class="glass-card">
+          <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">👥</div>
+          <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.3rem;">스마트 CRM</div>
+          <div style="font-size: 0.78rem; color: rgba(255,255,255,0.65); line-height: 1.5;">
+            Dice Coefficient 유사 고객 추천, 동명이인 자동 판별, 원클릭 주소 복사 & 전화 걸기
+          </div>
+        </div>
+        <div class="glass-card">
+          <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">📮</div>
+          <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.3rem;">원클릭 택배 의뢰</div>
+          <div style="font-size: 0.78rem; color: rgba(255,255,255,0.65); line-height: 1.5;">
+            Nodemailer로 택배사에 배송 의뢰서 자동 이메일. 발송 후 상태 즉시 전환
+          </div>
+        </div>
+        <div class="glass-card">
+          <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">🎁</div>
+          <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.3rem;">지인 선물 주문</div>
+          <div style="font-size: 0.78rem; color: rgba(255,255,255,0.65); line-height: 1.5;">
+            일괄 결제 / 다중 배송 스키마. 수령인 정보 분리 & FIFO 자동 정산 배분
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────── SLIDE 9: DATA FLOW (B2C) ─────────── -->
+  <div class="slide" data-slide="8">
+    <div class="slide-bg" style="background-image: url('images/tiltshift_delivery_1780367343045.png');"></div>
+    <div class="slide-content">
+      <div class="tag anim-up">Data Flow</div>
+      <h2 class="slide-title anim-up anim-up-d1">B2C 주문 <span class="accent">자동화</span> 파이프라인</h2>
+      <div class="deco-line anim-up anim-up-d1"></div>
+      <div class="split-layout reverse anim-up anim-up-d2">
+        <div>
+          <div class="glass-card" style="margin-bottom: 1rem;">
+            <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.6rem;">📱 경로 A: 고객 직접 주문</div>
+            <div class="flow-row" style="gap: 0.4rem; font-size: 0.78rem;">
+              <div class="flow-node" style="min-width: auto; padding: 0.5rem 0.8rem; font-size: 0.75rem;">
+                <span style="font-size: 1rem;">🔗</span><br/>공유 링크
+              </div>
+              <span class="flow-arrow" style="font-size: 0.9rem;">→</span>
+              <div class="flow-node" style="min-width: auto; padding: 0.5rem 0.8rem; font-size: 0.75rem;">
+                <span style="font-size: 1rem;">📝</span><br/>주문 폼
+              </div>
+              <span class="flow-arrow" style="font-size: 0.9rem;">→</span>
+              <div class="flow-node" style="min-width: auto; padding: 0.5rem 0.8rem; font-size: 0.75rem;">
+                <span style="font-size: 1rem;">💾</span><br/>발송대기
+              </div>
+            </div>
+          </div>
+          <div class="glass-card">
+            <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.6rem;">💬 경로 B: 카톡 텍스트 파싱</div>
+            <div class="flow-row" style="gap: 0.4rem; font-size: 0.78rem;">
+              <div class="flow-node" style="min-width: auto; padding: 0.5rem 0.8rem; font-size: 0.75rem;">
+                <span style="font-size: 1rem;">📋</span><br/>카톡 복붙
+              </div>
+              <span class="flow-arrow" style="font-size: 0.9rem;">→</span>
+              <div class="flow-node" style="min-width: auto; padding: 0.5rem 0.8rem; font-size: 0.75rem;">
+                <span style="font-size: 1rem;">🤖</span><br/>AI 파싱
+              </div>
+              <span class="flow-arrow" style="font-size: 0.9rem;">→</span>
+              <div class="flow-node" style="min-width: auto; padding: 0.5rem 0.8rem; font-size: 0.75rem;">
+                <span style="font-size: 1rem;">✅</span><br/>컨펌
+              </div>
+              <span class="flow-arrow" style="font-size: 0.9rem;">→</span>
+              <div class="flow-node" style="min-width: auto; padding: 0.5rem 0.8rem; font-size: 0.75rem;">
+                <span style="font-size: 1rem;">💾</span><br/>등록
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="glass-card" style="text-align: center;">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📮</div>
+            <div style="font-weight: 800; font-size: 1.5rem; color: #FFB74D; margin-bottom: 0.3rem;">수작업 0건</div>
+            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.6); line-height: 1.5;">
+              주문 접수부터 택배 의뢰까지<br/>하나의 흐름으로 통합
+            </div>
+            <div style="margin-top: 1rem; display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: center;">
+              <span class="tech-badge">이름 추출</span>
+              <span class="tech-badge">전화번호 정규화</span>
+              <span class="tech-badge">주소 분리</span>
+              <span class="tech-badge">품목 매핑</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────── SLIDE 10: STRESS TEST ─────────── -->
+  <div class="slide" data-slide="9">
+    <div class="slide-bg" style="background-image: url('images/tiltshift_warehouse_1780367218885.png');"></div>
+    <div class="slide-content">
+      <div class="tag anim-up">Stress Test</div>
+      <h2 class="slide-title anim-up anim-up-d1">스트레스 테스트 & <span class="accent">신뢰도</span></h2>
+      <div class="deco-line anim-up anim-up-d1"></div>
+      <div class="split-layout anim-up anim-up-d2">
+        <div>
+          <div class="glass-card" style="margin-bottom: 1rem;">
+            <div style="font-weight: 700; margin-bottom: 0.6rem;">🧪 12대 엣지 케이스 시나리오</div>
+            <ul class="bullet-list" style="font-size: 0.78rem;">
+              <li>인사 노이즈 혼합 ("밥 먹었냐?" 오분류)</li>
+              <li>한글 수사 변환 ("쉰콘테나" → 50)</li>
+              <li>필수 정보 누락 시 멋대로 채움</li>
+              <li>미지원 CRUD 시 기존 등록으로 오분류</li>
+              <li>B2C "5kg 3박스" 수량 과다 산출</li>
+            </ul>
+          </div>
+          <div class="glass-card">
+            <div style="font-weight: 700; margin-bottom: 0.6rem;">⚡ 6대 초고난도(Ultra) 시나리오</div>
+            <ul class="bullet-list" style="font-size: 0.78rem;">
+              <li>3개 그룹 인원수 합산 (3+4+2=9명)</li>
+              <li>역할 혼동 (소개인 vs 인수자 판별)</li>
+              <li>연쇄 번복 추적 & 최종값 확정</li>
+              <li>STT digit 띄어쓰기 공백 찢김</li>
+            </ul>
+          </div>
+        </div>
+        <div>
+          <div class="glass-card" style="text-align: center; padding: 2rem 1.5rem;">
+            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-bottom: 0.5rem;">일반 시나리오 파싱 성공률</div>
+            <div style="display: flex; align-items: baseline; justify-content: center; gap: 0.5rem; margin-bottom: 0.3rem;">
+              <span style="font-family: 'Outfit'; font-size: 1.5rem; color: rgba(255,255,255,0.4); text-decoration: line-through;">50%</span>
+              <span style="font-family: 'Outfit'; font-size: 1.2rem; color: rgba(255,255,255,0.4);">→</span>
+              <span class="stat-number" style="font-size: 3rem;">100%</span>
+            </div>
+            <div class="progress-bar" style="margin-bottom: 1.5rem;">
+              <div class="progress-fill" style="width: 100%;"></div>
+            </div>
+            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-bottom: 0.5rem;">Ultra Stress 성공률</div>
+            <div style="display: flex; align-items: baseline; justify-content: center; gap: 0.5rem; margin-bottom: 0.3rem;">
+              <span style="font-family: 'Outfit'; font-size: 1.5rem; color: rgba(255,255,255,0.4); text-decoration: line-through;">16.7%</span>
+              <span style="font-family: 'Outfit'; font-size: 1.2rem; color: rgba(255,255,255,0.4);">→</span>
+              <span class="stat-number" style="font-size: 3rem;">100%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 100%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────── SLIDE 11: DASHBOARD ANALYTICS ─────────── -->
+  <div class="slide" data-slide="10">
+    <div class="slide-bg" style="background-image: url('images/tiltshift_dashboard_1780367194356.png');"></div>
+    <div class="slide-content">
+      <div class="tag anim-up">Dashboard</div>
+      <h2 class="slide-title anim-up anim-up-d1"><span class="accent">7대</span> 분석 위젯</h2>
+      <div class="deco-line anim-up anim-up-d1"></div>
+      <div class="grid-4 anim-up anim-up-d2" style="margin-top: 0.5rem; margin-bottom: 0.8rem;">
+        <div class="glass-card-tight" style="text-align: center; padding: 0.8rem 0.5rem;">
+          <div style="font-size: 1.3rem;">🔔</div>
+          <div style="font-size: 0.72rem; font-weight: 600; margin-top: 0.2rem;">발송대기 알림</div>
+        </div>
+        <div class="glass-card-tight" style="text-align: center; padding: 0.8rem 0.5rem;">
+          <div style="font-size: 1.3rem;">📈</div>
+          <div style="font-size: 0.72rem; font-weight: 600; margin-top: 0.2rem;">성장률 표시</div>
+        </div>
+        <div class="glass-card-tight" style="text-align: center; padding: 0.8rem 0.5rem;">
+          <div style="font-size: 1.3rem;">⚡</div>
+          <div style="font-size: 0.72rem; font-weight: 600; margin-top: 0.2rem;">빠른 액션 바</div>
+        </div>
+        <div class="glass-card-tight" style="text-align: center; padding: 0.8rem 0.5rem;">
+          <div style="font-size: 1.3rem;">📊</div>
+          <div style="font-size: 0.72rem; font-weight: 600; margin-top: 0.2rem;">차트 탭 전환</div>
+        </div>
+      </div>
+      <div class="grid-3 anim-up anim-up-d3" style="margin-bottom: 1rem;">
+        <div class="glass-card-tight" style="text-align: center; padding: 0.8rem 0.5rem;">
+          <div style="font-size: 1.3rem;">🍊</div>
+          <div style="font-size: 0.72rem; font-weight: 600; margin-top: 0.2rem;">품종별 도넛차트</div>
+          <div style="font-size: 0.65rem; color: rgba(255,255,255,0.45);">매출 점유율 시각화</div>
+        </div>
+        <div class="glass-card-tight" style="text-align: center; padding: 0.8rem 0.5rem;">
+          <div style="font-size: 1.3rem;">🏆</div>
+          <div style="font-size: 0.72rem; font-weight: 600; margin-top: 0.2rem;">미수금 TOP 5</div>
+          <div style="font-size: 0.65rem; color: rgba(255,255,255,0.45);">외상 위험도 랭킹</div>
+        </div>
+        <div class="glass-card-tight" style="text-align: center; padding: 0.8rem 0.5rem;">
+          <div style="font-size: 1.3rem;">📝</div>
+          <div style="font-size: 0.72rem; font-weight: 600; margin-top: 0.2rem;">영농일지 위젯</div>
+          <div style="font-size: 0.65rem; color: rgba(255,255,255,0.45);">기록 습관 독려</div>
+        </div>
+      </div>
+      <div class="glass-card-tight anim-up anim-up-d4">
+        <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+          <div style="font-size: 1.5rem;">🧠</div>
+          <div>
+            <div style="font-weight: 700; font-size: 0.85rem;">AI 비서의 실시간 경영 진단</div>
+            <div style="font-size: 0.75rem; color: rgba(255,255,255,0.55);">
+              Prisma 집계 데이터 → LLM 프롬프트 주입 → 맞춤형 영농 경영 조언 생성
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────── SLIDE 12: CRM & MATCHING ─────────── -->
+  <div class="slide" data-slide="11">
+    <div class="slide-bg" style="background-image: url('images/tiltshift_market_1780367158793.png');"></div>
+    <div class="slide-content">
+      <div class="tag anim-up">Smart CRM</div>
+      <h2 class="slide-title anim-up anim-up-d1">지능형 <span class="accent">고객 매칭</span></h2>
+      <div class="deco-line anim-up anim-up-d1"></div>
+      <div class="split-layout anim-up anim-up-d2">
+        <div>
+          <div class="glass-card" style="margin-bottom: 1rem;">
+            <div style="font-weight: 700; margin-bottom: 0.5rem;">🔍 Dice Coefficient 유사 검색</div>
+            <ul class="bullet-list" style="font-size: 0.78rem;">
+              <li>한글 바이그램(Bigram) 최적화 알고리즘</li>
+              <li>유사도 0.15 이상 상위 5명 추천 칩 렌더링</li>
+              <li>정확 매칭 시 주소·연락처 자동 로드</li>
+              <li>중복 고객 생성률 제로화</li>
+            </ul>
+          </div>
+          <div class="glass-card">
+            <div style="font-weight: 700; margin-bottom: 0.5rem;">📞 동명이인 3단계 판별</div>
+            <ul class="bullet-list" style="font-size: 0.78rem;">
+              <li><span class="accent-blue">1단계:</span> 이름 + 번호 일치 → 기존 고객 사용</li>
+              <li><span class="accent-blue">2단계:</span> 번호 없으면 → 기존 계정에 번호 등록</li>
+              <li><span class="accent-blue">3단계:</span> 번호 상이 → 새 고객 분리 생성</li>
+              <li>별칭: <span style="color: rgba(255,255,255,0.6);">김영희(5678)</span> 형식 자동 태그</li>
+            </ul>
+          </div>
+        </div>
+        <div>
+          <div class="glass-card" style="text-align: center; padding: 1.5rem;">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">👥</div>
+            <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.8rem;">CRM 편의 기능</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
+              <div class="glass-card-tight" style="text-align: center;">
+                <div style="font-size: 1.3rem;">📋</div>
+                <div style="font-size: 0.72rem; font-weight: 600;">주소 복사</div>
+              </div>
+              <div class="glass-card-tight" style="text-align: center;">
+                <div style="font-size: 1.3rem;">📞</div>
+                <div style="font-size: 0.72rem; font-weight: 600;">원클릭 전화</div>
+              </div>
+              <div class="glass-card-tight" style="text-align: center;">
+                <div style="font-size: 1.3rem;">📝</div>
+                <div style="font-size: 0.72rem; font-weight: 600;">인라인 수정</div>
+              </div>
+              <div class="glass-card-tight" style="text-align: center;">
+                <div style="font-size: 1.3rem;">📦</div>
+                <div style="font-size: 0.72rem; font-weight: 600;">배송 타임라인</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────── SLIDE 13: RESPONSIVE & SPLIT VIEW ─────────── -->
+  <div class="slide" data-slide="12">
+    <div class="slide-bg" style="background-image: url('images/tiltshift_city_1780367289037.png');"></div>
+    <div class="slide-content">
+      <div class="tag anim-up">Responsive</div>
+      <h2 class="slide-title anim-up anim-up-d1">PC & 모바일 <span class="accent">2way</span> 반응형</h2>
+      <div class="deco-line anim-up anim-up-d1"></div>
+      <div class="grid-2 anim-up anim-up-d2" style="margin-top: 1rem;">
+        <div class="glass-card">
+          <div style="font-weight: 700; margin-bottom: 0.5rem;">📱 모바일 최적화</div>
+          <ul class="bullet-list" style="font-size: 0.78rem;">
+            <li>카드형 세로 스크롤 레이아웃</li>
+            <li>부유형 헤더 + 하단 네비게이션</li>
+            <li>수량 세로 스택 (스핀 버튼 제거)</li>
+            <li>설정 폼 1단 세로 스택 전환</li>
+            <li>240px 하단 패딩 (가려짐 방지)</li>
+          </ul>
+        </div>
+        <div class="glass-card">
+          <div style="font-weight: 700; margin-bottom: 0.5rem;">🖥️ 데스크톱 최적화</div>
+          <ul class="bullet-list" style="font-size: 0.78rem;">
+            <li>글래스모피즘 고정 사이드바</li>
+            <li>대시보드 2컬럼 다단 그리드</li>
+            <li>최대 너비 1400px (시선 피로 방지)</li>
+            <li>채팅 Split View 실시간 연동</li>
+          </ul>
+        </div>
+      </div>
+      <div class="glass-card anim-up anim-up-d3" style="margin-top: 1rem;">
+        <div style="font-weight: 700; margin-bottom: 0.5rem;">⚡ Split View 실시간 연동</div>
+        <div class="flow-row" style="justify-content: flex-start; gap: 0.4rem;">
+          <div class="flow-node" style="min-width: auto; padding: 0.5rem 0.8rem; font-size: 0.75rem;">
+            <span style="font-size: 1rem;">💬</span><br/>채팅 → 등록
+          </div>
+          <span class="flow-arrow" style="font-size: 0.9rem;">→</span>
+          <div class="flow-node" style="min-width: auto; padding: 0.5rem 0.8rem; font-size: 0.75rem;">
+            <span style="font-size: 1rem;">📡</span><br/>커스텀 이벤트
+          </div>
+          <span class="flow-arrow" style="font-size: 0.9rem;">→</span>
+          <div class="flow-node" style="min-width: auto; padding: 0.5rem 0.8rem; font-size: 0.75rem;">
+            <span style="font-size: 1rem;">📊</span><br/>현황판 갱신
+          </div>
+          <span style="font-size: 0.75rem; color: rgba(255,255,255,0.5); margin-left: 0.5rem;">
+            새로고침 없이 실시간 반영
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────── SLIDE 14: PERFORMANCE & NUMBERS ─────────── -->
+  <div class="slide" data-slide="13">
+    <div class="slide-bg" style="background-image: url('images/tiltshift_road_1780367236521.png');"></div>
+    <div class="slide-content">
+      <div class="tag anim-up">Metrics</div>
+      <h2 class="slide-title anim-up anim-up-d1">성과 <span class="accent">지표</span></h2>
+      <div class="deco-line anim-up anim-up-d1"></div>
+      <div class="grid-4 anim-up anim-up-d2" style="margin: 1.5rem 0;">
+        <div class="glass-card stat-box">
+          <div class="stat-number">100%</div>
+          <div class="stat-label">AI 파싱<br/>성공률</div>
+        </div>
+        <div class="glass-card stat-box">
+          <div class="stat-number" style="color: #64B5F6;">22</div>
+          <div class="stat-label">구현 완료<br/>스텝</div>
+        </div>
+        <div class="glass-card stat-box">
+          <div class="stat-number" style="color: #66FF66;">~3s</div>
+          <div class="stat-label">AI 응답<br/>레이턴시</div>
+        </div>
+        <div class="glass-card stat-box">
+          <div class="stat-number" style="color: #FF6EC7;">70%</div>
+          <div class="stat-label">프롬프트<br/>압축률</div>
+        </div>
+      </div>
+      <div class="grid-2 anim-up anim-up-d3">
+        <div class="glass-card">
+          <div style="font-weight: 700; margin-bottom: 0.6rem;">⚡ 최적화 성과</div>
+          <table class="compare-table">
+            <tr><td>AI 응답 속도</td><td><span style="text-decoration: line-through; color: rgba(255,255,255,0.4);">40~50초</span> → <span class="accent" style="font-weight: 700;">3~4초</span></td></tr>
+            <tr><td>프롬프트 크기</td><td><span style="text-decoration: line-through; color: rgba(255,255,255,0.4);">5.5k 토큰</span> → <span class="accent" style="font-weight: 700;">1.5k 토큰</span></td></tr>
+            <tr><td>LLM 등급</td><td><span style="text-decoration: line-through; color: rgba(255,255,255,0.4);">8B</span> → <span class="accent" style="font-weight: 700;">70B Versatile</span></td></tr>
+            <tr><td>송장 작성 시간</td><td><span class="accent" style="font-weight: 700;">80%↓</span> 단축</td></tr>
+          </table>
+        </div>
+        <div class="glass-card">
+          <div style="font-weight: 700; margin-bottom: 0.6rem;">🏗️ 시스템 규모</div>
+          <table class="compare-table">
+            <tr><td>DB 테이블</td><td style="font-weight: 600;">6개 모델</td></tr>
+            <tr><td>AI 액션 타입</td><td style="font-weight: 600;">6종</td></tr>
+            <tr><td>대시보드 위젯</td><td style="font-weight: 600;">7대 분석 위젯</td></tr>
+            <tr><td>스트레스 시나리오</td><td style="font-weight: 600;">18개 (12 + 6 Ultra)</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─────────── SLIDE 15: ROADMAP & CLOSING ─────────── -->
+  <div class="slide" data-slide="14">
+    <div class="slide-bg" style="background-image: url('images/tiltshift_sunset_1780367251526.png');"></div>
+    <div class="slide-content" style="text-align: center;">
+      <div class="tag anim-up">Future Roadmap</div>
+      <h2 class="slide-title anim-up anim-up-d1">향후 <span class="accent">로드맵</span></h2>
+      <div class="deco-line anim-up anim-up-d1" style="margin: 0 auto 1.5rem;"></div>
+      <div class="grid-3 anim-up anim-up-d2" style="margin-bottom: 2rem;">
+        <div class="glass-card" style="text-align: center;">
+          <div style="font-size: 2rem; margin-bottom: 0.4rem;">💬</div>
+          <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.2rem;">Phase 2</div>
+          <div style="font-size: 0.72rem; color: #FFB74D; font-weight: 600; margin-bottom: 0.3rem;">카카오톡 통합</div>
+          <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6); line-height: 1.4;">
+            카카오톡 챗봇 채널 연동<br/>영수증 직접 발송
+          </div>
+        </div>
+        <div class="glass-card" style="text-align: center;">
+          <div style="font-size: 2rem; margin-bottom: 0.4rem;">🏦</div>
+          <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.2rem;">Phase 3</div>
+          <div style="font-size: 0.72rem; color: #64B5F6; font-weight: 600; margin-bottom: 0.3rem;">자동 정산</div>
+          <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6); line-height: 1.4;">
+            오픈뱅킹 API 연동<br/>입금 시 장부 자동 차감
+          </div>
+        </div>
+        <div class="glass-card" style="text-align: center;">
+          <div style="font-size: 2rem; margin-bottom: 0.4rem;">📷</div>
+          <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.2rem;">Phase 4</div>
+          <div style="font-size: 0.72rem; color: #66FF66; font-weight: 600; margin-bottom: 0.3rem;">비전 AI</div>
+          <div style="font-size: 0.75rem; color: rgba(255,255,255,0.6); line-height: 1.4;">
+            영수증·송장 사진 OCR<br/>주소 자동 장부 기록
+          </div>
+        </div>
+      </div>
+      <div class="anim-up anim-up-d3">
+        <div style="font-size: clamp(2.5rem, 5vw, 4rem); margin-bottom: 0.5rem;">🍊</div>
+        <h2 class="slide-title" style="font-size: clamp(1.8rem, 3.5vw, 2.8rem);">
+          감사합니다
+        </h2>
+        <div style="font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-top: 0.5rem;">
+          Talk & Track — <span class="accent">귤비서</span>
+        </div>
+        <div style="margin-top: 1.2rem; display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap;">
+          <span class="tech-badge">Next.js 16</span>
+          <span class="tech-badge">React 19</span>
+          <span class="tech-badge">TypeScript</span>
+          <span class="tech-badge">Llama 3.3 70B</span>
+          <span class="tech-badge">Prisma</span>
+          <span class="tech-badge">Supabase</span>
+          <span class="tech-badge">Vercel</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- =============================================
+     NAVIGATION BAR
+     ============================================= -->
+<nav class="nav-bar" id="navBar">
+  <button class="nav-btn" id="prevBtn" aria-label="이전 슬라이드">‹</button>
+  <span class="slide-counter" id="slideCounter">1 / 15</span>
+  <div id="navDots" style="display: flex; gap: 5px; align-items: center;"></div>
+  <button class="nav-btn" id="nextBtn" aria-label="다음 슬라이드">›</button>
+</nav>
+
+<!-- =============================================
+     SLIDE ENGINE SCRIPT
+     ============================================= -->
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let isTransitioning = false;
+
+  const counter = document.getElementById('slideCounter');
+  const dotsContainer = document.getElementById('navDots');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  // Create navigation dots
+  for (let i = 0; i < totalSlides; i++) {
+    const dot = document.createElement('button');
+    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    dot.setAttribute('aria-label', `슬라이드 ${i + 1}`);
+    dot.addEventListener('click', () => goToSlide(i));
+    dotsContainer.appendChild(dot);
+  }
+
+  function goToSlide(index) {
+    if (isTransitioning || index === currentSlide) return;
+    isTransitioning = true;
+
+    document.body.classList.add('interacted');
+
+    // Deactivate current
+    slides[currentSlide].classList.remove('active');
+    dotsContainer.children[currentSlide].classList.remove('active');
+
+    // Activate new
+    currentSlide = index;
+    slides[currentSlide].classList.add('active');
+    dotsContainer.children[currentSlide].classList.add('active');
+
+    // Update counter
+    counter.textContent = `${currentSlide + 1} / ${totalSlides}`;
+
+    setTimeout(() => { isTransitioning = false; }, 700);
+  }
+
+  function next() {
+    goToSlide((currentSlide + 1) % totalSlides);
+  }
+
+  function prev() {
+    goToSlide((currentSlide - 1 + totalSlides) % totalSlides);
+  }
+
+  // Button navigation
+  nextBtn.addEventListener('click', next);
+  prevBtn.addEventListener('click', prev);
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+      e.preventDefault();
+      next();
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      prev();
+    }
+  });
+
+  // Touch/swipe navigation
+  let touchStartX = 0;
+  let touchEndX = 0;
+
+  document.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+
+  document.addEventListener('touchend', (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    const diff = touchStartX - touchEndX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) next();
+      else prev();
+    }
+  }, { passive: true });
+
+  // Mouse wheel navigation (debounced)
+  let wheelTimeout = null;
+  document.addEventListener('wheel', (e) => {
+    if (wheelTimeout) return;
+    wheelTimeout = setTimeout(() => { wheelTimeout = null; }, 800);
+    if (e.deltaY > 0) next();
+    else prev();
+  }, { passive: true });
+})();
+</script>
+
+</body>
+</html>

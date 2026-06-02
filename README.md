@@ -66,6 +66,7 @@ npx tsx --env-file=.env.local test-critical.ts
 
 ## 📄 기타 문서
 
+- [프로젝트 소개 슬라이드](./public/slides/index.html) (웹 서비스 경로: `/slides/index.html`) : 귤비서의 기술 성과와 아키텍처를 시각화한 모던 틸트시프트 & 다크 글래스모피즘 슬라이드 쇼
 - [PORTFOLIO.md](./PORTFOLIO.md) : 프로젝트 기술적 의사결정 및 개발 타임라인 기록 (오류 극복 스토리 수록)
 - [DEVELOPMENT.md](./DEVELOPMENT.md) : 개발 규칙 및 코딩 컨벤션
 - [AGENTS.md](./AGENTS.md) : AI 코딩 어시스턴트를 위한 시스템 아키텍처 컨텍스트 가이드
