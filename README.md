@@ -66,8 +66,7 @@ npx tsx --env-file=.env.local test-critical.ts
 
 ## 📄 기타 문서
 
-- [🍊 프로젝트 소개 슬라이드 (GitHub Pages 공식 웹 주소)](https://yonghwan-ko02.github.io/gyul-biseo/slides/) (Pages 활성화 전 임시 감상용: [CDN 즉시 실행 링크](https://raw.githack.com/yonghwan-ko02/gyul-biseo/main/public/slides/index.html))
-- [로컬 슬라이드 파일 경로](./public/slides/index.html) (개발 서버 구동 시 로컬 접속 경로: `http://localhost:3000/slides/`)
+- [🍊 프로젝트 소개 슬라이드](https://yonghwan-ko02.github.io/gyul-biseo/slides/) : 귤비서의 기술 성과와 아키텍처를 시각화한 모던 틸트시프트 & 다크 글래스모피즘 슬라이드 쇼
 - [PORTFOLIO.md](./PORTFOLIO.md) : 프로젝트 기술적 의사결정 및 개발 타임라인 기록 (오류 극복 스토리 수록)
 - [DEVELOPMENT.md](./DEVELOPMENT.md) : 개발 규칙 및 코딩 컨벤션
 - [AGENTS.md](./AGENTS.md) : AI 코딩 어시스턴트를 위한 시스템 아키텍처 컨텍스트 가이드
