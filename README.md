@@ -66,7 +66,7 @@ npx tsx --env-file=.env.local test-critical.ts
 
 ## 📄 기타 문서
 
-- [🍊 프로젝트 소개 슬라이드 (웹에서 즉시 감상)](https://raw.githack.com/yonghwan-ko02/gyul-biseo/main/public/slides/index.html) : 클릭 시 소스코드 파일 뷰어가 아닌 실제 인터랙티브 슬라이드쇼가 브라우저에 즉시 구동됩니다.
+- [🍊 프로젝트 소개 슬라이드 (GitHub Pages 공식 웹 주소)](https://yonghwan-ko02.github.io/gyul-biseo/slides/) (Pages 활성화 전 임시 감상용: [CDN 즉시 실행 링크](https://raw.githack.com/yonghwan-ko02/gyul-biseo/main/public/slides/index.html))
 - [로컬 슬라이드 파일 경로](./public/slides/index.html) (개발 서버 구동 시 로컬 접속 경로: `http://localhost:3000/slides/`)
 - [PORTFOLIO.md](./PORTFOLIO.md) : 프로젝트 기술적 의사결정 및 개발 타임라인 기록 (오류 극복 스토리 수록)
 - [DEVELOPMENT.md](./DEVELOPMENT.md) : 개발 규칙 및 코딩 컨벤션
