@@ -618,12 +618,56 @@
        RESPONSIVE
        ============================================ */
     @media (max-width: 768px) {
-      .slide-content { padding: 1.5rem 1.5rem; }
-      .grid-2, .split-layout, .split-layout.reverse { grid-template-columns: 1fr; gap: 1rem; }
-      .grid-3 { grid-template-columns: 1fr 1fr; }
-      .grid-4 { grid-template-columns: 1fr 1fr; }
-      .flow-row { flex-direction: column; }
-      .flow-arrow { transform: rotate(90deg); }
+      .slide-content {
+        padding: 1.2rem 0.8rem 5rem 0.8rem !important; /* 하단 내비게이션 영역 마진 확보 */
+        width: 95% !important;
+        max-height: 84vh !important;
+        overflow-y: auto !important; /* 모바일에서 텍스트가 아래로 넘치면 카드 내부 개별 스크롤로 가려짐 방지 */
+        -webkit-overflow-scrolling: touch;
+      }
+      .grid-2, .split-layout, .split-layout.reverse { grid-template-columns: 1fr; gap: 0.8rem; }
+      .grid-3 { grid-template-columns: 1fr; gap: 0.8rem; } /* 모바일 가독성을 위해 3열에서 1열 스택으로 전환 */
+      .grid-4 { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+      .flow-row { flex-direction: column; gap: 0.6rem; }
+      .flow-arrow { transform: rotate(90deg); margin: 0.2rem 0; }
+      
+      /* 모바일 레이아웃 최적화를 위한 텍스트 크기 조정 */
+      h1.title-main { font-size: clamp(2rem, 8vw, 3rem) !important; margin-bottom: 0.6rem !important; }
+      h2.slide-title { font-size: clamp(1.3rem, 6vw, 1.8rem) !important; margin-bottom: 0.5rem !important; }
+      h3.slide-subtitle { font-size: 0.85rem !important; margin-bottom: 1rem !important; line-height: 1.45 !important; }
+      .tag { padding: 4px 10px !important; margin-bottom: 0.6rem !important; font-size: 0.65rem !important; }
+      .toy-label { margin-bottom: 0.5rem !important; font-size: 0.62rem !important; }
+      .deco-line { margin-bottom: 0.6rem !important; }
+      
+      .glass-card { padding: 0.9rem 1.1rem !important; border-radius: 12px !important; }
+      .glass-card-tight { padding: 0.6rem 0.8rem !important; border-radius: 8px !important; }
+      .bullet-list li { font-size: 0.8rem !important; line-height: 1.4 !important; margin-bottom: 0.45rem !important; }
+      .compare-table td { padding: 0.5rem 0.75rem !important; font-size: 0.75rem !important; }
+      .compare-table th { padding: 0.5rem 0.75rem !important; font-size: 0.75rem !important; }
+      .flow-node { padding: 0.5rem 0.75rem !important; font-size: 0.75rem !important; }
+      .stat-number { font-size: clamp(1.6rem, 8vw, 2.3rem) !important; }
+      
+      .nav-bar {
+        bottom: 14px !important;
+        padding: 5px 12px !important;
+        gap: 6px !important;
+      }
+      .nav-btn {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 13px !important;
+      }
+      .slide-counter {
+        font-size: 11px !important;
+        min-width: 32px !important;
+      }
+      .nav-dot {
+        width: 6px !important;
+        height: 6px !important;
+      }
+      .nav-dot.active {
+        width: 16px !important;
+      }
     }
 
     /* Keyboard hint */
