@@ -4,26 +4,31 @@ import { useState, useEffect } from "react";
 import styles from "./ConfirmationCard.module.css";
 
 interface Props {
-  action: "create_shipment" | "create_customer_order";
+  action: "create_shipment" | "create_customer_order" | "create_payment" | "create_farm_log";
   data: {
-    customerName: string;
+    customerName?: string;
     recipientName?: string;
-    variety: string;
-    quantity: number;
-    unit: string;
+    variety?: string;
+    quantity?: number;
+    unit?: string;
     pricePerUnit?: number | null;
     phone?: string;
     address?: string;
     rawInput?: string;
+    amount?: number;
+    workType?: string;
+    workerCount?: number | null;
+    details?: string;
   };
 }
 
 const COMMON_VARIETIES = ["노지감귤", "타이벡", "한라봉", "천혜향", "레드향", "황금향"];
 const COMMON_UNITS = ["박스", "콘테나", "kg", "개"];
+const COMMON_WORKS = ["방제", "전정", "수확", "시비", "적과"];
 
 export default function ConfirmationCard({ action, data }: Props) {
   const [form, setForm] = useState({
-    customerName: data.customerName || "미지정 거래처",
+    customerName: data.customerName || (action === "create_farm_log" ? "" : "미지정 거래처"),
     recipientName: data.recipientName || data.customerName || "",
     variety: data.variety || "노지감귤",
     quantity: data.quantity || 1,
@@ -32,6 +37,10 @@ export default function ConfirmationCard({ action, data }: Props) {
     phone: data.phone || "",
     address: data.address || "",
     rawInput: data.rawInput || "",
+    amount: data.amount || "",
+    workType: data.workType || "방제",
+    workerCount: data.workerCount || "",
+    details: data.details || "",
   });
 
   const [status, setStatus] = useState<"pending" | "registering" | "success" | "cancelled" | "error">("pending");
@@ -133,6 +142,8 @@ export default function ConfirmationCard({ action, data }: Props) {
           data: {
             ...form,
             pricePerUnit: form.pricePerUnit ? Number(form.pricePerUnit) : null,
+            amount: form.amount ? Number(form.amount) : null,
+            workerCount: form.workerCount ? Number(form.workerCount) : null,
           },
         }),
       });
@@ -143,7 +154,6 @@ export default function ConfirmationCard({ action, data }: Props) {
         setStatus("success");
         window.dispatchEvent(new CustomEvent("shipment-registered"));
       } else {
-
         setStatus("error");
         setErrorMessage(result.error || "등록하는 중에 에러가 발생했습니다.");
       }
@@ -154,16 +164,29 @@ export default function ConfirmationCard({ action, data }: Props) {
   };
 
   if (status === "success") {
+    let successMessage = "장부에 성공적으로 등록되었습니다!";
+    let successDesc = "";
+
+    if (action === "create_shipment") {
+      successDesc = `${form.customerName} · ${form.variety} ${form.quantity}${form.unit}`;
+    } else if (action === "create_customer_order") {
+      successDesc = `${form.customerName} · ${form.variety} ${form.quantity}${form.unit}`;
+    } else if (action === "create_payment") {
+      successDesc = `${form.customerName} · ₩${Number(form.amount).toLocaleString()} 입금`;
+    } else if (action === "create_farm_log") {
+      successDesc = `${form.workType} 작업${form.workerCount ? ` (${form.workerCount}명)` : ""}`;
+    }
+
     return (
       <div className={styles.card}>
         <div className={styles.successState}>
           <span className={styles.successIcon}>🎉</span>
-          <h3 className={styles.successTitle}>장부에 성공적으로 등록되었습니다!</h3>
+          <h3 className={styles.successTitle}>{successMessage}</h3>
           <p className={styles.successDesc}>
-            {form.customerName} · {form.variety} {form.quantity}{form.unit}
+            {successDesc}
           </p>
           <p className="text-secondary text-sm" style={{ marginTop: "8px" }}>
-            {action === "create_customer_order" ? "택배 배송 의뢰가 예약되었습니다." : "출하 정보가 장부에 기록되었습니다."}
+            {action === "create_customer_order" ? "택배 배송 의뢰가 예약되었습니다." : "내역이 장부에 기록되었습니다."}
           </p>
         </div>
       </div>
@@ -181,143 +204,228 @@ export default function ConfirmationCard({ action, data }: Props) {
   }
 
   const isShipment = action === "create_shipment";
+  const isOrder = action === "create_customer_order";
+  const isPayment = action === "create_payment";
+  const isFarmLog = action === "create_farm_log";
 
   return (
     <div className={styles.card}>
       <h3 className={styles.title}>
-        🍊 {isShipment ? "출하 내역 등록 확인" : "B2C 주문 접수 확인"}
+        {isShipment && "🍊 출하 내역 등록 확인"}
+        {isOrder && "🍊 B2C 주문 접수 확인"}
+        {isPayment && "💸 입금 내역 등록 확인"}
+        {isFarmLog && "👨‍🌾 영농일지 기록 확인"}
       </h3>
 
       <div className={styles.form}>
-        {/* 거래처명 */}
-        <div className={styles.field}>
-          <label className={styles.label}>{isShipment ? "거래처 (성함)" : "주문자 (결제자 성함)"}</label>
-          <div className={styles.inputContainer}>
+        {/* 거래처명 (영농일지가 아닐 때만 표시) */}
+        {!isFarmLog && (
+          <div className={`${styles.field} ${styles.fullWidth}`}>
+            <label className={styles.label}>{isShipment ? "거래처 (성함)" : "주문자 (결제자 성함)"}</label>
+            <div className={styles.inputContainer}>
+              <input
+                type="text"
+                name="customerName"
+                className={styles.input}
+                value={form.customerName}
+                onChange={handleInputChange}
+                placeholder={isShipment ? "예: 홍길동, 제주청과" : "예: 홍길동"}
+                disabled={status === "registering"}
+              />
+              {isSearching && <span className={styles.searchingSpinner} />}
+            </div>
+            
+            {/* 매칭 완료 배지 */}
+            {matchedCustomer && (
+              <div className={styles.matchedBadge}>
+                <span className={styles.matchedIcon}>✓</span>
+                <span>기존 고객 매칭됨: {matchedCustomer.name}{matchedCustomer.nickname ? ` (${matchedCustomer.nickname})` : ""}{matchedCustomer.phone ? ` · ${matchedCustomer.phone}` : ""}</span>
+              </div>
+            )}
+
+            {/* 유사 고객 추천 칩스 */}
+            {!matchedCustomer && similarCustomers.length > 0 && (
+              <div className={styles.suggestionArea}>
+                <span className={styles.suggestionLabel}>혹시 아래 기존 고객인가요?</span>
+                <div className={styles.suggestionChips}>
+                  {similarCustomers.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      className={styles.suggestionChip}
+                      onClick={() => handleSelectCustomer(c)}
+                      disabled={status === "registering"}
+                    >
+                      👤 {c.name}{c.nickname ? ` (${c.nickname})` : ""}{c.phone ? ` · ${c.phone.slice(-4)}` : ""}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 입금액 입력 (입금 등록일 때만 표시) */}
+        {isPayment && (
+          <div className={`${styles.field} ${styles.fullWidth}`}>
+            <label className={styles.label}>입금 금액 (원)</label>
             <input
-              type="text"
-              name="customerName"
+              type="number"
+              name="amount"
               className={styles.input}
-              value={form.customerName}
+              value={form.amount}
               onChange={handleInputChange}
-              placeholder={isShipment ? "예: 홍길동, 제주청과" : "예: 홍길동"}
+              placeholder="예: 3000000"
               disabled={status === "registering"}
             />
-            {isSearching && <span className={styles.searchingSpinner} />}
           </div>
-          
-          {/* 매칭 완료 배지 */}
-          {matchedCustomer && (
-            <div className={styles.matchedBadge}>
-              <span className={styles.matchedIcon}>✓</span>
-              <span>기존 고객 매칭됨: {matchedCustomer.name}{matchedCustomer.nickname ? ` (${matchedCustomer.nickname})` : ""}{matchedCustomer.phone ? ` · ${matchedCustomer.phone}` : ""}</span>
-            </div>
-          )}
+        )}
 
-          {/* 유사 고객 추천 칩스 */}
-          {!matchedCustomer && similarCustomers.length > 0 && (
-            <div className={styles.suggestionArea}>
-              <span className={styles.suggestionLabel}>혹시 아래 기존 고객인가요?</span>
-              <div className={styles.suggestionChips}>
-                {similarCustomers.map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    className={styles.suggestionChip}
-                    onClick={() => handleSelectCustomer(c)}
-                    disabled={status === "registering"}
+        {/* 영농일지 양식 (영농일지일 때만 표시) */}
+        {isFarmLog && (
+          <>
+            <div className={styles.field}>
+              <label className={styles.label}>작업 종류</label>
+              <input
+                type="text"
+                name="workType"
+                className={styles.input}
+                value={form.workType}
+                onChange={handleInputChange}
+                placeholder="예: 방제, 전정, 수확"
+                disabled={status === "registering"}
+              />
+              <div className={styles.varietyChips}>
+                {COMMON_WORKS.map((w) => (
+                  <span
+                    key={w}
+                    className={`${styles.chip} ${form.workType.includes(w) ? styles.chipActive : ""}`}
+                    onClick={() => status !== "registering" && setForm(prev => ({ ...prev, workType: w }))}
                   >
-                    👤 {c.name}{c.nickname ? ` (${c.nickname})` : ""}{c.phone ? ` · ${c.phone.slice(-4)}` : ""}
-                  </button>
+                    {w}
+                  </span>
                 ))}
               </div>
             </div>
-          )}
-        </div>
-        <div className={styles.field}>
-          <label className={styles.label}>품종</label>
-          <input
-            type="text"
-            name="variety"
-            className={styles.input}
-            value={form.variety}
-            onChange={handleInputChange}
-            placeholder="품종 입력"
-            disabled={status === "registering"}
-          />
-          <div className={styles.varietyChips}>
-            {COMMON_VARIETIES.map((v) => (
-              <span
-                key={v}
-                className={`${styles.chip} ${form.variety.includes(v) ? styles.chipActive : ""}`}
-                onClick={() => status !== "registering" && handleVarietyClick(v)}
-              >
-                {v}
-              </span>
-            ))}
-          </div>
-        </div>
 
-        {/* 수량 및 단위 */}
-        <div className={styles.row}>
-          <div className={styles.field}>
-            <label className={styles.label}>수량</label>
-            <div className={styles.quantityGroup}>
-              <button
-                type="button"
-                className={styles.qtyButton}
-                onClick={() => adjustQuantity(-1)}
-                disabled={status === "registering"}
-              >
-                -
-              </button>
+            <div className={styles.field}>
+              <label className={styles.label}>작업 인원 (명)</label>
               <input
                 type="number"
-                name="quantity"
-                className={`${styles.input} ${styles.qtyInput}`}
-                value={form.quantity}
-                onChange={handleInputChange}
-                min="1"
+                name="workerCount"
+                className={styles.input}
+                value={form.workerCount}
+                onChange={(e) => setForm(prev => ({ ...prev, workerCount: e.target.value ? Number(e.target.value) : "" }))}
+                placeholder="예: 5"
                 disabled={status === "registering"}
               />
-              <button
-                type="button"
-                className={styles.qtyButton}
-                onClick={() => adjustQuantity(1)}
-                disabled={status === "registering"}
-              >
-                +
-              </button>
             </div>
-          </div>
 
-          <div className={styles.field}>
-            <label className={styles.label}>단위</label>
+            <div className={`${styles.field} ${styles.fullWidth}`}>
+              <label className={styles.label}>상세 작업 내용</label>
+              <input
+                type="text"
+                name="details"
+                className={styles.input}
+                value={form.details}
+                onChange={handleInputChange}
+                placeholder="예: 아주망 넷, 아즈방 하나"
+                disabled={status === "registering"}
+              />
+            </div>
+          </>
+        )}
+
+        {/* 출하 & 주문 양식: 품종 */}
+        {(isShipment || isOrder) && (
+          <div className={`${styles.field} ${styles.fullWidth}`}>
+            <label className={styles.label}>품종</label>
             <input
               type="text"
-              name="unit"
+              name="variety"
               className={styles.input}
-              value={form.unit}
+              value={form.variety}
               onChange={handleInputChange}
-              placeholder="단위"
+              placeholder="품종 입력"
               disabled={status === "registering"}
             />
             <div className={styles.varietyChips}>
-              {COMMON_UNITS.map((u) => (
+              {COMMON_VARIETIES.map((v) => (
                 <span
-                  key={u}
-                  className={`${styles.chip} ${form.unit === u ? styles.chipActive : ""}`}
-                  onClick={() => status !== "registering" && handleUnitClick(u)}
+                  key={v}
+                  className={`${styles.chip} ${form.variety.includes(v) ? styles.chipActive : ""}`}
+                  onClick={() => status !== "registering" && handleVarietyClick(v)}
                 >
-                  {u}
+                  {v}
                 </span>
               ))}
             </div>
           </div>
-        </div>
+        )}
+
+        {/* 출하 & 주문 양식: 수량 및 단위 */}
+        {(isShipment || isOrder) && (
+          <div className={`${styles.row} ${styles.fullWidth}`}>
+            <div className={styles.field}>
+              <label className={styles.label}>수량</label>
+              <div className={styles.quantityGroup}>
+                <button
+                  type="button"
+                  className={styles.qtyButton}
+                  onClick={() => adjustQuantity(-1)}
+                  disabled={status === "registering"}
+                >
+                  -
+                </button>
+                <input
+                  type="number"
+                  name="quantity"
+                  className={`${styles.input} ${styles.qtyInput}`}
+                  value={form.quantity}
+                  onChange={handleInputChange}
+                  min="1"
+                  disabled={status === "registering"}
+                />
+                <button
+                  type="button"
+                  className={styles.qtyButton}
+                  onClick={() => adjustQuantity(1)}
+                  disabled={status === "registering"}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            <div className={styles.field}>
+              <label className={styles.label}>단위</label>
+              <input
+                type="text"
+                name="unit"
+                className={styles.input}
+                value={form.unit}
+                onChange={handleInputChange}
+                placeholder="단위"
+                disabled={status === "registering"}
+              />
+              <div className={styles.varietyChips}>
+                {COMMON_UNITS.map((u) => (
+                  <span
+                    key={u}
+                    className={`${styles.chip} ${form.unit === u ? styles.chipActive : ""}`}
+                    onClick={() => status !== "registering" && handleUnitClick(u)}
+                  >
+                    {u}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 출하일 때: 단가 */}
         {isShipment && (
-          <div className={styles.field}>
+          <div className={`${styles.field} ${styles.fullWidth}`}>
             <label className={styles.label}>상자당 단가 (원)</label>
             <input
               type="number"
@@ -331,8 +439,8 @@ export default function ConfirmationCard({ action, data }: Props) {
           </div>
         )}
 
-        {/* B2C 주문일 때: 연락처 및 주소 */}
-        {!isShipment && (
+        {/* B2C 주문 및 출하 등록일 때: 연락처 및 주소 */}
+        {(isShipment || isOrder) && (
           <>
             <div className={styles.field}>
               <label className={styles.label}>받는 분 성함</label>
@@ -360,7 +468,7 @@ export default function ConfirmationCard({ action, data }: Props) {
               />
             </div>
 
-            <div className={styles.field}>
+            <div className={`${styles.field} ${styles.fullWidth}`}>
               <label className={styles.label}>배송지 주소</label>
               <input
                 type="text"
@@ -387,7 +495,13 @@ export default function ConfirmationCard({ action, data }: Props) {
           type="button"
           className={styles.confirmBtn}
           onClick={handleConfirm}
-          disabled={status === "registering" || !form.customerName || !form.variety}
+          disabled={
+            status === "registering" ||
+            (!isFarmLog && !form.customerName) ||
+            (isShipment && !form.variety) ||
+            (isPayment && !form.amount) ||
+            (isFarmLog && !form.workType)
+          }
         >
           {status === "registering" ? "등록하는 중..." : "✓ 장부에 바로 등록"}
         </button>

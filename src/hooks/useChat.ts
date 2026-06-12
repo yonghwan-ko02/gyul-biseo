@@ -6,16 +6,20 @@ export interface Message {
   role: "user" | "assistant";
   content: string;
   pendingAction?: {
-    action: "create_shipment" | "create_customer_order";
+    action: "create_shipment" | "create_customer_order" | "create_payment" | "create_farm_log";
     data: {
-      customerName: string;
-      variety: string;
-      quantity: number;
-      unit: string;
+      customerName?: string;
+      variety?: string;
+      quantity?: number;
+      unit?: string;
       pricePerUnit?: number | null;
       phone?: string;
       address?: string;
       rawInput?: string;
+      amount?: number;
+      workType?: string;
+      workerCount?: number | null;
+      details?: string;
     };
   };
 }

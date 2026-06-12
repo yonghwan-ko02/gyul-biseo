@@ -1,4 +1,5 @@
-import { parseUserUtterance } from "./src/lib/ai/llm";
+import { loadEnvConfig } from "@next/env";
+loadEnvConfig(process.cwd());
 
 interface TestCase {
   category: string;
@@ -140,6 +141,7 @@ const testCases: TestCase[] = [
 ];
 
 async function runTests() {
+  const { parseUserUtterance } = await import("./src/lib/ai/llm");
   console.log("==================================================");
   console.log("🔍 [귤비서] 비판적 시나리오 스트레스 테스트 시작");
   console.log("==================================================");

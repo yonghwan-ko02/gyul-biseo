@@ -294,7 +294,7 @@ export default function CustomerClientPage({ initialCustomers }: Props) {
                         <span className={styles.nickname}>({c.nickname})</span>
                       )}
                     </div>
-                    <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                    <div style={{ display: "flex", gap: "6px", alignItems: "center", flexShrink: 0 }}>
                       {directOrderCount > 0 && (
                         <span
                           style={{

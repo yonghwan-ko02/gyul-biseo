@@ -44,6 +44,9 @@ export async function queryUnpaidRecords(data: UnpaidQueryDTO): Promise<{
       farmId: farm.id,
       paymentStatus: { in: ["unpaid", "partial"] },
       isDeleted: false,
+      customer: {
+        isDeleted: false,
+      },
       ...customerFilter,
     },
     include: {

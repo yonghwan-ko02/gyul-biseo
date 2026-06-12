@@ -13,6 +13,7 @@ interface Customer {
 interface Shipment {
   id: string;
   createdAt: string;
+  shipmentDate: string;
   variety: string;
   quantity: number;
   memo: string | null;

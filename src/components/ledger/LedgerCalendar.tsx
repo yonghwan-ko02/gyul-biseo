@@ -27,6 +27,7 @@ interface Customer {
 interface Shipment {
   id: string;
   createdAt: string;
+  shipmentDate: string;
   variety: string;
   quantity: number;
   memo: string | null;
@@ -36,6 +37,9 @@ interface Shipment {
   totalAmount?: number | null;
   outstandingAmount?: number | null;
   customer: Customer;
+  recipientName?: string | null;
+  recipientPhone?: string | null;
+  recipientAddress?: string | null;
 }
 
 interface Props {

@@ -345,4 +345,16 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+@media (min-width: 500px) {
+  .form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-sm) var(--space-md);
+  }
+
+  .fullWidth {
+    grid-column: span 2;
+  }
+}
+
 

@@ -17,6 +17,7 @@ interface Customer {
 interface Shipment {
   id: string;
   createdAt: string;
+  shipmentDate: string;
   variety: string;
   quantity: number;
   memo: string | null;
@@ -48,7 +49,7 @@ export default function LedgerClientList({ initialShipments }: Props) {
   const filteredShipments = useMemo(() => {
     const now = new Date();
     return shipments.filter((s) => {
-      const sDate = new Date(s.createdAt);
+      const sDate = new Date(s.shipmentDate);
       if (filterType === "all") return true;
       
       if (filterType === "week") {

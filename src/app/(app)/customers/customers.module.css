@@ -170,24 +170,34 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
 }
 
 .nameGroup {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex: 1;
+  min-width: 0;
 }
 
 .name {
   font-size: var(--font-size-lg);
   font-weight: 800;
   color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .nickname {
   font-size: var(--font-size-sm);
   color: var(--color-primary-dark);
   font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .typeBadge {

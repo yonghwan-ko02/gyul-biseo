@@ -10,6 +10,12 @@ export function useVoiceInput(onResult: (text: string) => void) {
   // SpeechRecognition 객체 타입 선언 우회
   const recognitionRef = useRef<any>(null);
 
+  // 최신 onResult를 useRef로 캐시하여 useEffect 재실행 방지
+  const onResultRef = useRef(onResult);
+  useEffect(() => {
+    onResultRef.current = onResult;
+  }, [onResult]);
+
   useEffect(() => {
     // 브라우저 지원 여부 확인
     const SpeechRecognition = 
@@ -27,7 +33,7 @@ export function useVoiceInput(onResult: (text: string) => void) {
 
     recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
-      onResult(transcript);
+      onResultRef.current(transcript);
       setIsRecording(false);
     };
 
@@ -41,7 +47,13 @@ export function useVoiceInput(onResult: (text: string) => void) {
     };
 
     recognitionRef.current = recognition;
-  }, [onResult]);
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+    };
+  }, []);
 
   const toggleRecording = useCallback(() => {
     if (!isSupported) {

@@ -51,34 +51,21 @@ export async function POST(request: Request) {
       });
     }
 
-    // ─── 입금(수금) 기록 ───
+    // ─── 입금(수금) 기록 (중간 컨펌 유도) ───
     if (action.action === "create_payment") {
-      const result = await createPaymentRecord({
-        customerName: action.data.customerName,
-        amount: action.data.amount,
-        rawInput: message,
-      });
-
-      revalidatePath("/", "layout");
       return NextResponse.json({
         action,
-        paymentResult: result,
+        needsConfirmation: true,
+        rawInput: message
       });
     }
 
-    // ─── 영농일지 기록 ───
+    // ─── 영농일지 기록 (중간 컨펌 유도) ───
     if (action.action === "create_farm_log") {
-      const farmLog = await createFarmLogRecord({
-        workType: action.data.workType,
-        workerCount: action.data.workerCount,
-        details: action.data.details,
-        rawInput: message,
-      });
-
-      revalidatePath("/", "layout");
       return NextResponse.json({
         action,
-        savedLogId: farmLog.id,
+        needsConfirmation: true,
+        rawInput: message
       });
     }
 

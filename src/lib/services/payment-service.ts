@@ -27,6 +27,9 @@ export async function createPaymentRecord(data: CreatePaymentDTO) {
     throw new Error(`거래처 "${safeCustomerName}"을(를) 찾을 수 없습니다.`);
   }
 
+  // 1. 고객의 기존 예치금(prepayment)을 가져와 이번 입금액에 합산하여 함께 미수금 차감에 사용합니다.
+  let totalAvailableAmount = data.amount + (customer.prepayment || 0);
+
   // 미수금 Shipment 조회 (오래된 것부터)
   const unpaidShipments = await prisma.shipment.findMany({
     where: {
@@ -38,7 +41,7 @@ export async function createPaymentRecord(data: CreatePaymentDTO) {
     include: { payments: { where: { isDeleted: false } } },
   });
 
-  let remainingAmount = data.amount;
+  let remainingAmount = totalAvailableAmount;
   const createdPayments: string[] = [];
 
   for (const shipment of unpaidShipments) {
@@ -62,7 +65,7 @@ export async function createPaymentRecord(data: CreatePaymentDTO) {
         shipmentId: shipment.id,
         amount: paymentForThis,
         method: "transfer",
-        memo: data.rawInput,
+        memo: data.rawInput || "예치금 포함 정산 매칭",
       },
     });
     createdPayments.push(payment.id);
@@ -82,10 +85,18 @@ export async function createPaymentRecord(data: CreatePaymentDTO) {
     remainingAmount -= paymentForThis;
   }
 
+  // 2. 미수금 차감 후 남은 잔액(remainingAmount)이 있다면 거래처의 prepayment 필드에 업데이트(누적 적립)합니다.
+  await prisma.customer.update({
+    where: { id: customer.id },
+    data: {
+      prepayment: remainingAmount,
+    },
+  });
+
   return {
     customerName: customer.name,
     totalAmount: data.amount,
-    appliedAmount: data.amount - remainingAmount,
+    appliedAmount: totalAvailableAmount - remainingAmount,
     remainingAmount,
     paymentCount: createdPayments.length,
   };

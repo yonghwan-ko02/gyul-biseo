@@ -38,7 +38,7 @@ export async function queryRevenueRecord({ period = "month", variety }: QueryRev
   };
 
   if (startDate) {
-    whereClause.createdAt = { gte: startDate };
+    whereClause.shipmentDate = { gte: startDate };
   }
 
   if (variety) {

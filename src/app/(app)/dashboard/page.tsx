@@ -27,7 +27,7 @@ export default async function DashboardPage() {
   // ═══════════════════════════════════════════
   const todayShipments = await prisma.shipment.findMany({
     where: { 
-      createdAt: { gte: today },
+      shipmentDate: { gte: today },
       status: "shipped",
       isDeleted: false 
     }
@@ -38,7 +38,11 @@ export default async function DashboardPage() {
   // 2. 전체 미수금
   // ═══════════════════════════════════════════
   const unpaidShipments = await prisma.shipment.findMany({
-    where: { paymentStatus: { in: ["unpaid", "partial"] }, isDeleted: false },
+    where: { 
+      paymentStatus: { in: ["unpaid", "partial"] }, 
+      isDeleted: false,
+      customer: { isDeleted: false }
+    },
     include: { customer: true }
   });
   const totalUnpaid = unpaidShipments.reduce((acc, curr) => {
@@ -50,12 +54,12 @@ export default async function DashboardPage() {
   // 3. 이번 달 + 전월 매출 (성장률용)
   // ═══════════════════════════════════════════
   const allRecentShipments = await prisma.shipment.findMany({
-    where: { createdAt: { gte: firstDayOfPrevMonth }, isDeleted: false }
+    where: { shipmentDate: { gte: firstDayOfPrevMonth }, isDeleted: false }
   });
 
-  const monthShipments = allRecentShipments.filter(s => new Date(s.createdAt) >= firstDayOfMonth);
+  const monthShipments = allRecentShipments.filter(s => new Date(s.shipmentDate) >= firstDayOfMonth);
   const prevMonthShipments = allRecentShipments.filter(
-    s => new Date(s.createdAt) >= firstDayOfPrevMonth && new Date(s.createdAt) < firstDayOfMonth
+    s => new Date(s.shipmentDate) >= firstDayOfPrevMonth && new Date(s.shipmentDate) < firstDayOfMonth
   );
 
   const calcRevenue = (shipments: typeof allRecentShipments) =>
@@ -90,7 +94,7 @@ export default async function DashboardPage() {
 
   const weekShipments = await prisma.shipment.findMany({
     where: {
-      createdAt: { gte: sevenDaysAgo },
+      shipmentDate: { gte: sevenDaysAgo },
       status: "shipped",
       isDeleted: false,
     },
@@ -102,7 +106,7 @@ export default async function DashboardPage() {
     dailyMap.set(format(d, "M/d"), 0);
   }
   for (const s of weekShipments) {
-    const key = format(new Date(s.createdAt), "M/d");
+    const key = format(new Date(s.shipmentDate), "M/d");
     if (dailyMap.has(key)) {
       dailyMap.set(key, (dailyMap.get(key) || 0) + s.quantity);
     }
@@ -117,7 +121,7 @@ export default async function DashboardPage() {
   // ═══════════════════════════════════════════
   const sixMonthsAgo = startOfMonth(subMonths(now, 5));
   const sixMonthShipments = await prisma.shipment.findMany({
-    where: { createdAt: { gte: sixMonthsAgo }, isDeleted: false },
+    where: { shipmentDate: { gte: sixMonthsAgo }, isDeleted: false },
   });
 
   const monthlyMap = new Map<string, number>();
@@ -126,7 +130,7 @@ export default async function DashboardPage() {
     monthlyMap.set(format(d, "M월"), 0);
   }
   for (const s of sixMonthShipments) {
-    const key = format(new Date(s.createdAt), "M월");
+    const key = format(new Date(s.shipmentDate), "M월");
     if (monthlyMap.has(key)) {
       monthlyMap.set(key, (monthlyMap.get(key) || 0) + (s.totalAmount || (s.quantity * (s.unitPrice || 0))));
     }

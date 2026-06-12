@@ -3,6 +3,9 @@ import { sendOrderEmailToCourier } from "./email-service";
 
 interface CreateShipmentDTO {
   customerName: string;
+  recipientName?: string;
+  phone?: string;
+  address?: string;
   variety: string;
   quantity: number;
   unit: string;
@@ -38,9 +41,25 @@ export async function createShipmentRecord(data: CreateShipmentDTO) {
         name: safeCustomerName,
         type: "direct",
         farmId: farm.id,
+        phone: data.phone || null,
+        address: data.address || null,
       },
     });
+  } else {
+    // 기존 고객 정보 업데이트 (연락처나 주소가 새로 기입된 경우)
+    if ((data.phone && !customer.phone) || (data.address && !customer.address)) {
+      customer = await prisma.customer.update({
+        where: { id: customer.id },
+        data: {
+          phone: customer.phone || data.phone || null,
+          address: customer.address || data.address || null,
+        },
+      });
+    }
   }
+
+  const totalAmount = data.pricePerUnit ? (data.quantity * data.pricePerUnit) : null;
+  const outstandingAmount = totalAmount;
 
   // 3. 출하 기록(Shipment) 생성
   const shipment = await prisma.shipment.create({
@@ -49,10 +68,15 @@ export async function createShipmentRecord(data: CreateShipmentDTO) {
       customerId: customer.id,
       variety: data.variety,
       quantity: data.quantity,
-      memo: `단위: ${data.unit}`,
+      memo: `단위: ${data.unit || "박스"}`,
       unitPrice: data.pricePerUnit || null,
+      totalAmount,
+      outstandingAmount,
       rawInput: data.rawInput,
       paymentStatus: "unpaid",
+      recipientName: data.recipientName || safeCustomerName,
+      recipientPhone: data.phone || null,
+      recipientAddress: data.address || null,
     },
     include: {
       customer: true, // 반환 시 고객 정보 포함
@@ -191,6 +215,8 @@ export async function createCustomerOrderRecord(data: CreateCustomerOrderDTO) {
     }
   }
 
+  const safeUnit = data.unit || "박스";
+
   // 발송 대기(pending) 상태로 출하 기록 생성 (수령인 정보 함께 저장)
   const shipment = await prisma.shipment.create({
     data: {
@@ -198,7 +224,7 @@ export async function createCustomerOrderRecord(data: CreateCustomerOrderDTO) {
       customerId: customer.id,
       variety: data.variety,
       quantity: data.quantity,
-      memo: `단위: ${data.unit}`,
+      memo: `단위: ${safeUnit}`,
       rawInput: data.rawInput,
       paymentStatus: "unpaid",
       status: "pending", 
@@ -221,7 +247,7 @@ export async function createCustomerOrderRecord(data: CreateCustomerOrderDTO) {
         address: shipment.recipientAddress || customer.address,
         variety: shipment.variety,
         quantity: shipment.quantity,
-        unit: data.unit,
+        unit: safeUnit,
         memo: shipment.memo,
       }, {
         farmName: farm.farmName,

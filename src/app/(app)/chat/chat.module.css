@@ -309,7 +309,7 @@
     flex: 1;
     overflow-y: auto;
     padding: var(--space-lg);
-    padding-bottom: 120px; /* 데스크톱에서는 하단 입력란 높이만큼만 패딩 지정 */
+    padding-bottom: 240px; /* 데스크톱에서도 하단 입력란과 마이크 버튼 높이만큼 패딩 지정 */
   }
 
   .inputArea {

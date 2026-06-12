@@ -21,6 +21,9 @@ export interface CreateShipmentAction extends BaseAction {
   action: "create_shipment";
   data: {
     customerName: string; // 거래처 이름 (예: 제주청과)
+    recipientName?: string; // 받는 분 성함
+    phone?: string; // 연락처
+    address?: string; // 배송지 주소
     variety: string; // 품종 (예: 한라봉, 극조생)
     quantity: number; // 수량
     unit: string; // 단위 (예: 박스, 콘테나, kg)
