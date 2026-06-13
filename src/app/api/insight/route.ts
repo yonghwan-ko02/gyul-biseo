@@ -10,19 +10,53 @@ const modelName = useGroq
   ? (process.env.GROQ_MODEL || "llama-3.1-8b-instant") 
   : (process.env.OLLAMA_MODEL || "llama3.1");
 
+const INSIGHT_SYSTEM_PROMPT = `You are "Gyul-Biseo", a smart and warm personal AI assistant for a citrus farmer.
+Your role is to analyze farm statistics (sales, unpaid balance, top debtor, shipment boxes, farm logs count) and generate a friendly, encouraging business advice/insight for the farmer.
 
-const INSIGHT_SYSTEM_PROMPT = `당신은 감귤 농장주의 똑똑하고 따뜻한 비서 '귤비서'입니다.
-농장의 경영/매출/미수금 및 영농기록 통계를 분석하여 농장주에게 든든하고 친근한 격려와 경영 진단(의사결정 보조)을 제공해야 합니다.
+[Rules]
+1. Write the advice strictly in friendly and polite standard Korean (~습니다, ~세요, ~해요). Do NOT use any regional dialect.
+2. Specifically mention 1 or 2 metrics from the statistics (e.g. high unpaid ratio, shipment count, etc.) to praise them or kindly advise caution. Suggest exactly 1 gentle action they can take (e.g. sending a settlement statement, writing a farm log, etc.).
+3. Write compactly in 2 to 3 sentences of continuous text. Do not use excessive line breaks or list formats. Do not explain the reasoning or wrap in JSON, just output the plain text advice itself.
+4. NEVER use markdown bold markers (**).`;
 
-[작성 지침]
-1. 친근하고 다정한 표준어 존댓말(~습니다, ~세요, ~해요)로 작성하세요. 방언이나 사투리는 사용하지 마세요.
-2. 현재 농가의 수치(출하량, 미수금 비율, 미수금 최대 거래처, 영농일지 기록 횟수 등)를 구체적으로 1~2개 짚어서 칭찬하거나 우려되는 부분(예: 높은 미수금 비율)을 다정하게 진단하고, 실천할 수 있는 1개의 액션(예: "정산서 보내기", "영농일지 기록하기" 등)을 부드럽게 권고하세요.
-3. 절대 수치나 줄바꿈을 과다하게 쓰지 말고, 2~3문장의 줄글 형태로 컴팩트하게 작성하세요. 부연 설명이나 JSON 껍데기 없이 오직 조언 텍스트 자체만 그대로 반환하세요.
-4. 마크다운 볼드체(**)는 절대 사용하지 마세요.`;
-
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    // 1. 통계 데이터 집계
+    const { searchParams } = new URL(request.url);
+    const clientHash = searchParams.get("hash");
+
+    // 1. Calculate stateHash from latest updates and record counts
+    const shipmentCount = await prisma.shipment.count({ where: { isDeleted: false } });
+    const paymentCount = await prisma.payment.count({ where: { isDeleted: false } });
+    const farmLogCount = await prisma.farmLog.count({ where: { isDeleted: false } });
+
+    const latestShipment = await prisma.shipment.findFirst({
+      where: { isDeleted: false },
+      orderBy: { updatedAt: "desc" },
+      select: { updatedAt: true }
+    });
+    const latestPayment = await prisma.payment.findFirst({
+      where: { isDeleted: false },
+      orderBy: { updatedAt: "desc" },
+      select: { updatedAt: true }
+    });
+    const latestFarmLog = await prisma.farmLog.findFirst({
+      where: { isDeleted: false },
+      orderBy: { logDate: "desc" }, // logDate is the date field, but we can also check createdAt
+      select: { createdAt: true }
+    });
+
+    const latestShipmentTime = latestShipment?.updatedAt?.getTime() || 0;
+    const latestPaymentTime = latestPayment?.updatedAt?.getTime() || 0;
+    const latestFarmLogTime = latestFarmLog?.createdAt?.getTime() || 0;
+
+    const stateHash = `${shipmentCount}_${paymentCount}_${farmLogCount}_${latestShipmentTime}_${latestPaymentTime}_${latestFarmLogTime}`;
+
+    // 2. If client hash matches stateHash, return immediately with isModified: false
+    if (clientHash && clientHash === stateHash) {
+      return NextResponse.json({ isModified: false });
+    }
+
+    // 3. Gather full statistical data for LLM
     const shipments = await prisma.shipment.findMany({
       where: { isDeleted: false },
       include: { customer: true }
@@ -51,7 +85,7 @@ export async function GET() {
         customerUnpaidMap.set(s.customer.name, (customerUnpaidMap.get(s.customer.name) || 0) + amt);
       });
 
-    let topDebtor = "없음";
+    let topDebtor = "none";
     let maxUnpaid = 0;
     customerUnpaidMap.forEach((amt, name) => {
       if (amt > maxUnpaid) {
@@ -66,19 +100,18 @@ export async function GET() {
 
     const pendingOrderCount = shipments.filter(s => s.status === "pending").length;
 
-    // 2. LLM에 전달할 컨텍스트 구성
-    const contextPrompt = `현재 농가 실시간 통계:
-- 이번 시즌 총 예상 매출액: ₩${totalEstimatedSales.toLocaleString()}원
-- 현재 총 미수금(외상 잔액): ₩${totalUnpaid.toLocaleString()}원
-- 미수금 비율: ${unpaidRatio.toFixed(1)}%
-- 미수금이 가장 높은 거래처: ${topDebtor} (미수액: ₩${maxUnpaid.toLocaleString()}원)
-- 총 출하량: ${shippedBoxCount} 상자
-- 신규 접수된 발송대기 주문서: ${pendingOrderCount}건
-- 누적 작성된 영농일지 기록 수: ${farmLogs.length}회
+    // 4. Compact English context prompt
+    const contextPrompt = `Stats:
+- Sales: KRW ${totalEstimatedSales}
+- Unpaid: KRW ${totalUnpaid} (${unpaidRatio.toFixed(1)}%)
+- Top Debtor: ${topDebtor} (Unpaid: KRW ${maxUnpaid})
+- Shipped: ${shippedBoxCount} boxes
+- Pending Orders: ${pendingOrderCount}
+- Farm Logs: ${farmLogs.length}
 
-위 통계를 바탕으로 농장주에게 격려와 든든한 3줄 경영 조언을 작성해줘.`;
+Based on these stats, write a 3-sentence encouraging advice/insight for the farmer.`;
 
-    // 3. LLM 호출
+    // 5. LLM Call
     const response = await llmClient.chat.completions.create({
       model: modelName,
       messages: [
@@ -91,11 +124,13 @@ export async function GET() {
 
     const insight = response.choices[0]?.message?.content?.trim() || "오늘도 귤 농장 가꾸시느라 고생 많으셨습니다! 귤비서가 곁에서 든든하게 장부와 기록을 돕겠습니다. 🍊";
 
-    return NextResponse.json({ insight });
+    return NextResponse.json({ isModified: true, insight, stateHash });
   } catch (error) {
     console.error("AI Insight Generation Error:", error);
     return NextResponse.json({ 
-      insight: "지금 AI 정산 엔진 연결이 조금 불안정해서 통계를 확인하지 못했습니다. 조금 뒤에 다시 확인해주세요! 🍊" 
+      isModified: true,
+      insight: "지금 AI 정산 엔진 연결이 조금 불안정해서 통계를 확인하지 못했습니다. 조금 뒤에 다시 확인해주세요! 🍊",
+      stateHash: ""
     });
   }
 }

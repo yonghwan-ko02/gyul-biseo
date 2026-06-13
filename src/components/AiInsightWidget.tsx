@@ -10,12 +10,49 @@ export function AiInsightWidget() {
   useEffect(() => {
     async function fetchInsight() {
       try {
-        const res = await fetch("/api/insight");
+        // Read local cache
+        const cachedData = localStorage.getItem("gyul_biseo_insight_cache");
+        let cachedInsight = "";
+        let cachedHash = "";
+        
+        if (cachedData) {
+          try {
+            const parsed = JSON.parse(cachedData);
+            cachedInsight = parsed.insight || "";
+            cachedHash = parsed.stateHash || "";
+          } catch (e) {
+            console.error("Failed to parse cached insight:", e);
+          }
+        }
+
+        // If we have cached insight, set it first to display immediately
+        if (cachedInsight) {
+          setInsight(cachedInsight);
+          setLoading(false);
+        }
+
+        // Call the API with current hash
+        const url = cachedHash ? `/api/insight?hash=${encodeURIComponent(cachedHash)}` : "/api/insight";
+        const res = await fetch(url);
         const data = await res.json();
-        setInsight(data.insight);
+
+        if (data.isModified) {
+          // If content modified (or no cache), update state and local storage
+          setInsight(data.insight);
+          localStorage.setItem(
+            "gyul_biseo_insight_cache",
+            JSON.stringify({ insight: data.insight, stateHash: data.stateHash })
+          );
+        } else {
+          // If not modified, keep using cached insight
+          if (cachedInsight) {
+            setInsight(cachedInsight);
+          }
+        }
       } catch (err) {
         console.error("Failed to load AI insight:", err);
-        setInsight("지금 AI 정산 비서가 잠시 연결이 안 되고 있어요. 조금 뒤에 대시보드를 다시 확인해주세요! 🍊");
+        // Only override text if we have no cached insight to show
+        setInsight(prev => prev || "지금 AI 정산 비서가 잠시 연결이 안 되고 있어요. 조금 뒤에 대시보드를 다시 확인해주세요! 🍊");
       } finally {
         setLoading(false);
       }
