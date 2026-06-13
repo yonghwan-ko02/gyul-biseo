@@ -9,6 +9,9 @@ export function useVoiceInput(onResult: (text: string) => void) {
   
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
+  
+  // 실시간으로 변환된 텍스트를 누적 보관할 ref
+  const latestTranscriptRef = useRef("");
 
   // 최신 onResult를 useRef로 캐시하여 useEffect 재실행 방지
   const onResultRef = useRef(onResult);
@@ -51,17 +54,33 @@ export function useVoiceInput(onResult: (text: string) => void) {
       }
     }
 
+    // 시작 시 버퍼 초기화
+    latestTranscriptRef.current = "";
+
     try {
       const recognition = new SpeechRecognition();
       recognition.lang = "ko-KR";
-      recognition.interimResults = false; // 최종 결과만 받음
+      recognition.interimResults = true; // 실시간 텍스트 변환 활성화
       recognition.maxAlternatives = 1;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        onResultRef.current(transcript);
-        setIsRecording(false);
+        let finalTranscript = "";
+        let interimTranscript = "";
+
+        for (let i = 0; i < event.results.length; ++i) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript;
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+
+        const currentResult = finalTranscript || interimTranscript;
+        if (currentResult.trim()) {
+          latestTranscriptRef.current = currentResult;
+        }
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -83,6 +102,11 @@ export function useVoiceInput(onResult: (text: string) => void) {
 
       recognition.onend = () => {
         setIsRecording(false);
+        const resultText = latestTranscriptRef.current.trim();
+        if (resultText) {
+          onResultRef.current(resultText);
+        }
+        latestTranscriptRef.current = ""; // 완료 후 버퍼 초기화
       };
 
       recognitionRef.current = recognition;
@@ -102,7 +126,8 @@ export function useVoiceInput(onResult: (text: string) => void) {
       } catch (e) {
         console.error("Failed to stop recognition:", e);
       }
-      setIsRecording(false);
+      // Note: 여기서 setIsRecording(false)를 바로 호출하지 않고 onend 콜백에 위임합니다.
+      // 이렇게 해야 Safari 등에서 stop() 이후 남은 버퍼 변환 처리가 완료될 때까지 상태를 유지하고 완료 시점에 텍스트를 전송할 수 있습니다.
     }
   }, []);
 
@@ -140,4 +165,5 @@ export function useVoiceInput(onResult: (text: string) => void) {
 
   return { isRecording, toggleRecording, isSupported };
 }
+
 
