@@ -7,7 +7,7 @@ export function useVoiceInput(onResult: (text: string) => void) {
   const [isRecording, setIsRecording] = useState(false);
   const [isSupported, setIsSupported] = useState(true);
   
-  // SpeechRecognition 객체 타입 선언 우회
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
 
   // 최신 onResult를 useRef로 캐시하여 useEffect 재실행 방지
@@ -17,12 +17,11 @@ export function useVoiceInput(onResult: (text: string) => void) {
   }, [onResult]);
 
   useEffect(() => {
-    // 브라우저 지원 여부 확인
-    const SpeechRecognition = 
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       
     if (!SpeechRecognition) {
-      setIsSupported(false);
+      Promise.resolve().then(() => setIsSupported(false));
       return;
     }
 
@@ -31,12 +30,14 @@ export function useVoiceInput(onResult: (text: string) => void) {
     recognition.interimResults = false; // 최종 결과만 받음
     recognition.maxAlternatives = 1;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
       onResultRef.current(transcript);
       setIsRecording(false);
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onerror = (event: any) => {
       console.error("Speech recognition error", event.error);
       setIsRecording(false);
