@@ -93,8 +93,8 @@ export function useVoiceInput(onResult: (text: string) => void) {
           alert("마이크 사용 권한이 거부되었습니다. 브라우저 설정에서 마이크 사용 권한을 허용해 주십시오.");
         } else if (event.error === "service-not-allowed") {
           alert("음성 인식 서비스가 거부되었습니다. Siri 활성화 여부나 기기 설정을 확인해 주십시오.");
-        } else if (event.error === "no-speech") {
-          // 인식된 음성이 없는 경우는 얼럿 없이 종료
+        } else if (event.error === "no-speech" || event.error === "aborted") {
+          // 인식된 음성이 없거나 프로그램적으로 취소(aborted)된 경우는 얼럿 없이 종료
         } else {
           alert(`음성 인식 중 오류가 발생했습니다: ${event.error}`);
         }
