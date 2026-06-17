@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+// 비밀번호 인증 비활성화 여부 (다시 활성화하려면 false로 변경)
+const DISABLE_AUTH = true;
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -8,6 +11,20 @@ export function middleware(request: NextRequest) {
   if (pathname === '/') {
     const chatUrl = new URL('/chat', request.url);
     return NextResponse.redirect(chatUrl);
+  }
+
+  // 로그인 페이지 처리
+  if (pathname === '/login') {
+    if (DISABLE_AUTH) {
+      const chatUrl = new URL('/chat', request.url);
+      return NextResponse.redirect(chatUrl);
+    }
+    return NextResponse.next();
+  }
+
+  // 비밀번호 인증 비활성화 시 검사 생략
+  if (DISABLE_AUTH) {
+    return NextResponse.next();
   }
 
   // 관리자 권한 확인 (쿠키 기반)
@@ -26,10 +43,11 @@ export function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-// 아래의 경로들에만 이 미들웨어가 실행되도록 설정 (주문 폼과 관련 API는 제외)
+// 아래의 경로들에만 이 미들웨어가 실행되도록 설정 (로그인 및 주요 경로 포함)
 export const config = {
   matcher: [
     '/',
+    '/login',
     '/chat',
     '/dashboard',
     '/ledger',
